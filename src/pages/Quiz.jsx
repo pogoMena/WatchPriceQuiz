@@ -12,71 +12,48 @@ export const Quiz = () => {
 
   const updatePosts = (newPosts) => {
     setPosts(newPosts);
-    console.log(newPosts);
   };
 
-  useEffect(() => {
-    console.log("from useeffect");
-    fetchData();
-    firstWatch();
-  }, [posts]);
 
-  const firstWatch = (poststemp) => {
-    if (posts) {
-      setCurrentWatchParent(poststemp[postNumber]);
-      setPostNumber(postNumber + 1);
-      console.log(poststemp);
 
-      /*
-    console.log(
-      "https://" +
-        wp.domain +
-        wp.permalink +
-        ".json"
-    );
-    fetch(
-      "https://" +
-        wp.domain +
-        wp.permalink +
-        ".json"
-    ).then((data) => {
-      console.log("next watch");
-      console.log(data);
-    });
-    */
-    } else {
-      console.log("nope");
-    }
-  };
   const nextWatch = () => {
     if (posts) {
       setCurrentWatchParent(posts[postNumber]);
       setPostNumber(postNumber + 1);
       console.log(posts);
+      let wp = posts[postNumber].data
+      console.log(wp.domain);
+      console.log(wp.permalink)
 
-      /*
-    console.log(
-      "https://" +
-        wp.domain +
+
+      console.log(
+        "https://www.reddit.com" +
         wp.permalink +
         ".json"
-    );
-    fetch(
-      "https://" +
-        wp.domain +
+      );
+      fetch(
+        "https://www.reddit.com" +
         wp.permalink +
         ".json"
-    ).then((data) => {
-      console.log("next watch");
-      console.log(data);
-    });
-    */
+      ).then((res) => {
+        res.json().then((data) => {
+          if (data) {
+            console.log(data)
+            /**
+             * There are 2 items in this i believe
+             * the second one has the comments. its something like 
+             * data[1].data.children where isSubmitter === true
+             * You can figure this one out mena we all believe in you
+             */
+          }
+        });
+      });
     } else {
       console.log("nope");
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = () => {
     console.log("yo");
     fetch("https://www.reddit.com/r/watchexchange.json").then((res) => {
       if (res.status !== 200) {
@@ -91,7 +68,15 @@ export const Quiz = () => {
       });
     });
   };
+  useEffect(() => {
+    console.log("from useeffect");
+    if (posts) {
+      nextWatch();
+    } else {
+      fetchData();
+    }
 
+  }, [posts]);
   return (
     <>
       <h1>Quiz</h1>
