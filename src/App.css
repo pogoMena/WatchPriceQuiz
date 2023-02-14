@@ -13,16 +13,18 @@ justify-content: center;
 }
 
 .leftButton{
+    text-align: center;
     width:12.5vw;
     margin:auto;
 }
 
 .rightButton{
+    text-align: center;
     width: 12.5vw;
     margin:auto;
 }
 .activeWatch{
-    
+    text-align: center;
     width: 75%;
     height: 75vh;
     margin: auto;

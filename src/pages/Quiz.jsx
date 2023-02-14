@@ -1,5 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
+import Button from 'react-bootstrap/button';
+import Form from "react-bootstrap/form";
 import axios from "axios";
 
 export const Quiz = () => {
@@ -195,12 +197,15 @@ export const Quiz = () => {
             </button>
           )}
         </div>
-        {watchPrice && (
-          <div>
-            <h1>{watchPrice}</h1>
-          </div>
-        )}
       </div>
+      {watchPrice && (
+        <Form>
+          <Button>{watchPrice}</Button>
+          <Button>{watchPrice}</Button>
+          <Button>{watchPrice}</Button>
+          <Button>{watchPrice}</Button>
+        </Form>
+      )}
       <button onClick={nextWatch}>Next watch</button>
     </>
   );
