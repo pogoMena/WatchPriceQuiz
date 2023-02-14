@@ -36,8 +36,7 @@ export const Quiz = () => {
       fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
         res.json().then((data) => {
           if (data) {
-
-            console.log(data)
+            console.log(data);
             /***
              * This is to get the comment that will have the price in it
              */
@@ -48,48 +47,57 @@ export const Quiz = () => {
 
             postComments.forEach((post) => {
               if (keepItGoing) {
-              
-              if (post.data.is_submitter) {
-                let moneyRegEx = new RegExp("[$][0-9.]+|[0-9.]+[$]", "g");
-                let noCommasPlease = post.data.body.replace(/,/g, "");
-                let result = noCommasPlease.match(moneyRegEx);
+                if (post.data.is_submitter) {
+                  let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
+                  let noCommasPlease = post.data.body.replace(/,/g, "");
+                  let result = noCommasPlease.match(moneyRegEx);
 
-                if (result) {
-                  console.log(result);
-                  if (result.length > 1) {
-                    let allResults = [];
-                    result.forEach((thisResult) => {
-                      console.log(thisResult);
-                      let noDolla = thisResult.replace(/\$/g, "");
-                      console.log(noDolla);
-                      allResults.push(noDolla);
-                    });
+                  if (result) {
+                    console.log(result);
+                    if (result.length > 1) {
+                      let allResults = [];
+                      result.forEach((thisResult) => {
+                        let noDolla = thisResult.replace(/\$/g, "");
+                        noDolla = noDolla.replace(/€/g, "");
+                        allResults.push(noDolla);
+                      });
 
-                    let lowest = 0;
+                      let lowest = 0;
+                      let nextLowest = 0;
 
-                    allResults.forEach((price) => {
-                      let intPrice = Number(price);
-                      if (lowest === 0) {
-                        lowest = intPrice;
-                      } else {
-                        if (intPrice < lowest) {
+                      allResults.forEach((price) => {
+                        let intPrice = Number(price);
+                        if (lowest === 0) {
                           lowest = intPrice;
+                        } else {
+                          if (intPrice < lowest) {
+                            nextLowest = lowest;
+                            lowest = intPrice;
+                          }
                         }
-                      }
-                    });
-                    setWatchPrice(lowest);
-                  } else {
-                    let noDolla = result[0].replace(/\$/g, "");
-                    setWatchPrice(Number(noDolla));
-                  }
-                  keepItGoing=false;
-                } else {
-                    keepItGoing = false;
-                }
-                console.log(noCommasPlease);
-              }
+                      });
 
-            }
+                      if (lowest < (nextLowest / 2)) {
+                        console.log("its doing it!");
+                        console.log(nextLowest);
+                        console.log(lowest);
+                        setWatchPrice(nextLowest);
+                      } else {
+                        setWatchPrice(lowest);
+                      }
+                    } else {
+                      let noDolla = result[0].replace(/\$/g, "");
+                      noDolla = noDolla.replace(/€/g, "");
+                      setWatchPrice(Number(noDolla));
+                    }
+                    keepItGoing = false;
+                  } else {
+                    keepItGoing = false;
+                    nextWatch();
+                  }
+                  console.log(noCommasPlease);
+                }
+              }
             });
 
             if (data[0].data.children[0].data.media_metadata) {
@@ -114,33 +122,40 @@ export const Quiz = () => {
               /*
                 Handles If there is only one image
                 */
-               console.log("only one")
-              setCurrentImage(
-                data[0].data.children[0].data.url_overridden_by_dest
-              );
+              console.log("only one");
               setImages([]);
+              let tempUrl =
+                data[0].data.children[0].data.url_overridden_by_dest;
+              if (!tempUrl.includes("v.redd")) {
+                setCurrentImage(tempUrl);
+                console.log(tempUrl);
+              } else {
+                nextWatch();
+              }
             }
           }
         });
       });
-    }else{
-        console.log('its all maxed out')
+    } else {
+      console.log("its all maxed out");
     }
   };
 
   const fetchData = () => {
-    fetch("https://www.reddit.com/r/watchexchange/new/.json?limit=100").then((res) => {
-      if (res.status !== 200) {
-        console.log("error");
-        return;
-      }
-      res.json().then((data) => {
-        if (data) {
-          updatePosts(data.data.children);
-          nextWatch();
+    fetch("https://www.reddit.com/r/watchexchange/new/.json?limit=100").then(
+      (res) => {
+        if (res.status !== 200) {
+          console.log("error");
+          return;
         }
-      });
-    });
+        res.json().then((data) => {
+          if (data) {
+            updatePosts(data.data.children);
+            nextWatch();
+          }
+        });
+      }
+    );
   };
   useEffect(() => {
     if (posts) {
