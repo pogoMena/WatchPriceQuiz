@@ -4,3 +4,35 @@
     padding:0;
     font-family: sans-serif;
 }
+
+.questionDisplay{
+display: flex;
+justify-content: center;
+    
+
+}
+
+.leftButton{
+    width:12.5vw;
+    margin:auto;
+}
+
+.rightButton{
+    width: 12.5vw;
+    margin:auto;
+}
+.activeWatch{
+    
+    width: 50vw;
+    height: 75vh;
+    margin: auto;
+    padding: auto;
+    
+    display: block;
+}
+
+.activeWatch > img {
+    margin:auto;
+    max-width:100%;
+max-height:100%;
+}
