@@ -10,7 +10,6 @@ import {
 import "./App.css";
 import {Home} from "./pages/Home";
 import { Quiz} from "./pages/Quiz";
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
   

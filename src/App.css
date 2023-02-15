@@ -1,40 +1,104 @@
-*{
-    box-sizing: border-box;
-    margin:0;
-    padding:0;
-    font-family: sans-serif;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+.pageWrapper{
+    display: grid;
+    grid-template-columns: 75% 25%;
+}
+.questionDisplay {
+    grid-column-start: 1;
+  grid-column-end: 2;
+  display: grid;
+  grid-template-columns: 12.5% 75% 12.5%;
 }
 
-.questionDisplay{
-display: flex;
-justify-content: center;
-    
+.leftButton {
+    grid-column-start: 1;
+  grid-column-end: 2;
 
 }
 
-.leftButton{
-    text-align: center;
-    width:12.5vw;
-    margin:auto;
+.rightButton {
+  grid-column-start: 3;
+  grid-column-end: 4;
 }
+.activeWatch {
+    grid-column-start: 2;
+  grid-column-end: 3;
+  height: 100vh;
+  margin: auto;
+  padding: auto;
 
-.rightButton{
-    text-align: center;
-    width: 12.5vw;
-    margin:auto;
-}
-.activeWatch{
-    text-align: center;
-    width: 75%;
-    height: 100vh;
-    margin: auto;
-    padding: auto;
-    
-    display: block;
 }
 
 .activeWatch > img {
-    margin:auto;
-    max-width:100%;
-max-height:100%;
+  border-radius: 25%;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  transition: all 2.5s;
+}
+
+.answersParent{
+    display: grid;
+  grid-template-rows: 5% 95%;
+}
+
+
+.answersDiv {
+    padding: 5%;
+    height: 100%;
+    border: 5px solid black;
+  border-radius: 15%;
+  display: grid;
+  grid-template-rows: 2fr 1fr 1fr 1fr 1fr 2fr;
+
+  gap: 15%;
+  height: auto;
+
+}
+
+.answersDiv > button{
+padding: 15px;
+border-radius: 5%;
+box-shadow: 0 3px #999;
+}
+
+.answersDiv > button:hover{
+background-color:aliceblue;
+}
+
+.answersDiv > button:active{
+  box-shadow: 0 1px #666;
+  transform: translateY(2px);
+}
+
+.answersDiv > button:nth-child(1) {
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+.answersDiv > button:nth-child(2) {
+  grid-row-start: 3;
+  grid-row-end: 4;
+}
+.answersDiv > button:nth-child(3) {
+  
+  grid-row-start: 4;
+  grid-row-end: 5;
+}
+.answersDiv > button:nth-child(4) {
+
+  grid-row-start: 5;
+  grid-row-end: 6;
+}
+.correct {
+  background-color: blue;
+}
+
+.nextWatch{
+    width: 25%;
+    margin: auto;
 }

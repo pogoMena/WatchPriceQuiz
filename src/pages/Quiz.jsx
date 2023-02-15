@@ -1,7 +1,5 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import Button from 'react-bootstrap/Button';
-import Form from "react-bootstrap/Form";
 import axios from "axios";
 
 export const Quiz = () => {
@@ -22,6 +20,8 @@ export const Quiz = () => {
 
   const [postNumber, setPostNumber] = useState(2);
 
+  const [imageRotation, setImageRotation] = useState(0);
+
   const updatePosts = (newPosts) => {
     setPosts(newPosts);
   };
@@ -32,18 +32,20 @@ export const Quiz = () => {
     return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
   }
   function shuffle(array) {
-    let currentIndex = array.length, randomIndex;
+    let currentIndex = array.length,
+      randomIndex;
 
     // While there remain elements to shuffle.
     while (currentIndex != 0) {
-
       // Pick a remaining element.
       randomIndex = Math.floor(Math.random() * currentIndex);
       currentIndex--;
 
       // And swap it with the current element.
       [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex], array[currentIndex]];
+        array[randomIndex],
+        array[currentIndex],
+      ];
     }
 
     return array;
@@ -54,7 +56,7 @@ export const Quiz = () => {
     //2 second Highest
     //3 highest
     let index = getRandomIntInclusive(0, 3);
-    let answers = []
+    let answers = [];
     setAnswerIndex(index);
 
     answer = parseInt(answer);
@@ -89,9 +91,8 @@ export const Quiz = () => {
         break;
     }
 
-    setPotentialAnswers(answers)
-
-  }
+    setPotentialAnswers(answers);
+  };
 
   const imageChange = (index) => {
     setImageIndex(index);
@@ -99,6 +100,12 @@ export const Quiz = () => {
   };
 
   const nextWatch = () => {
+    setImageRotation(0);
+    const image = document.getElementById("activeWatch");
+    if (image) {
+      image.style.transform = `rotate(0deg)`;
+    }
+
     setImageIndex(0);
     if (posts && postNumber < posts.length) {
       setCurrentWatchParent(posts[postNumber]);
@@ -149,7 +156,7 @@ export const Quiz = () => {
                         }
                       });
 
-                      if (lowest < (nextLowest / 2)) {
+                      if (lowest < nextLowest / 2) {
                         console.log("its doing it!");
                         console.log(nextLowest);
                         console.log(lowest);
@@ -166,10 +173,9 @@ export const Quiz = () => {
                       GenerateAnswers(noDolla);
                     }
 
-
                     keepItGoing = false;
                   } else {
-                    setPotentialAnswers([])
+                    setPotentialAnswers([]);
                     keepItGoing = false;
                     //nextWatch();
                   }
@@ -197,16 +203,11 @@ export const Quiz = () => {
               setImages(ImagesArray);
               setImageIndex(0);
             } else {
-              /*
-                Handles If there is only one image
-                */
-              //console.log("only one");
               setImages([]);
               let tempUrl =
                 data[0].data.children[0].data.url_overridden_by_dest;
               if (!tempUrl.includes("v.redd")) {
                 setCurrentImage(tempUrl);
-                //console.log(tempUrl);
               } else {
                 //nextWatch();
               }
@@ -215,6 +216,26 @@ export const Quiz = () => {
         });
       });
     }
+  };
+
+  const rotateImage = () => {
+    const image = document.getElementById("activeWatch");
+    var imageRotateTemp = imageRotation;
+    imageRotateTemp += 90;
+    setImageRotation(imageRotateTemp);
+
+    image.style.transform = `rotate(${imageRotateTemp}deg)`;
+  };
+
+  const rightAnswer = () => {
+    const image = document.getElementById("activeWatch");
+    image.style.transform = `rotate(1080deg)`;
+    //nextWatch();
+  };
+
+  const wrongAnswer = () => {
+    const image = document.getElementById("activeWatch");
+    image.style.transition = "position: absolute;";
   };
 
   const fetchData = () => {
@@ -243,63 +264,60 @@ export const Quiz = () => {
 
   return (
     <>
-
-      <div className="row">
-        <div className="questionDisplay col-10 row">
-          <div className="leftButton col-1">
+      <div className="pageWrapper">
+        <div className="questionDisplay">
+          <div className="leftButton">
             {images && imageIndex > 0 && (
-              <Button
-              className="my-auto"
+              <button
+                className=""
                 onClick={() => {
                   imageChange(imageIndex - 1);
                 }}>
                 {String.fromCharCode(8592)}
-              </Button>
+              </button>
             )}
           </div>
 
-          <div className="col-10">
-            {currentImage && (
-              <div className="activeWatch">
-                <img src={currentImage} alt="watch" />
-              </div>
-            )}</div>
-          <div className="rightButton col-1">
+          {currentImage && (
+            <div className="activeWatch">
+              <img src={currentImage} alt="watch" id="activeWatch" />
+            </div>
+          )}
+          <div className="rightButton ">
             {images && imageIndex < images.length - 1 && (
-              <Button
-              className="m-auto"
+              <button
+                className=""
                 onClick={() => {
                   imageChange(imageIndex + 1);
                 }}>
                 {String.fromCharCode(8594)}
-              </Button>
+              </button>
             )}
           </div>
         </div>
-        <div className="col-2">
-          <div className="row p-1">
-            <Button className="w-75 mx-auto" variant="outline-success" onClick={nextWatch}>Next watch</Button>
+        <div className="answersParent">
+          <div className="toolBox">
+            <button className="nextWatch" onClick={nextWatch}>
+              Next watch
+            </button>
+            <button className="rotate" onClick={rotateImage}>
+              Rotate
+            </button>
           </div>
           {watchPrice && potentialAnswers && (
-            <Form>
-              <Form.Group>
-                {potentialAnswers.map((answer, index) => {
-                  if (index === answerIndex) {
-                    return (<div className="row p-1">
-                      <Button className="w-75 mx-auto" variant="danger">${answer}</Button>
-                    </div>)
-                  } else {
-                    return (<div className="row p-1">
-                      <Button className="w-75 mx-auto" variant="primary">${answer}</Button>
-                    </div>)
-                  }
-
+            <div className="answersDiv">
+              {potentialAnswers.map((answer, index) => {
+                if (index === answerIndex) {
+                  return (
+                    <button className="correct" onClick={rightAnswer}>
+                      ${answer}
+                    </button>
+                  );
+                } else {
+                  return <button className="">${answer}</button>;
                 }
-
-
-                )}
-              </Form.Group>
-            </Form>
+              })}
+            </div>
           )}
         </div>
       </div>
