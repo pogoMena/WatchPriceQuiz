@@ -102,3 +102,12 @@ background-color:aliceblue;
     width: 25%;
     margin: auto;
 }
+.toolBox{
+    display: flex;
+    width: 100%;
+
+}
+.score{
+    padding: 5px;
+    text-align: center;
+}

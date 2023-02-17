@@ -22,6 +22,10 @@ export const Quiz = () => {
 
   const [imageRotation, setImageRotation] = useState(0);
 
+  const [numCorrect, setNumCorret] = useState(0);
+  const [numTotal, setNumTotal] = useState(0);
+  const [percentage, setPercentage] = useState(0);
+
   const updatePosts = (newPosts) => {
     setPosts(newPosts);
   };
@@ -99,7 +103,12 @@ export const Quiz = () => {
     setCurrentImage(images[index]);
   };
 
-  const nextWatch = () => {
+
+  const nextWatch = (optionalPostNumber = postNumber) => {
+
+
+    console.log('at the top');
+    console.log(optionalPostNumber)
     setImageRotation(0);
     const image = document.getElementById("activeWatch");
     if (image) {
@@ -107,115 +116,147 @@ export const Quiz = () => {
     }
 
     setImageIndex(0);
-    if (posts && postNumber < posts.length) {
-      setCurrentWatchParent(posts[postNumber]);
-      setPostNumber(postNumber + 1);
-      let wp = posts[postNumber].data;
+    if (posts && optionalPostNumber < posts.length) {
+      setCurrentWatchParent(posts[optionalPostNumber]);
+      setPostNumber(optionalPostNumber + 1);
+      console.log(optionalPostNumber);
+      let wp = posts[optionalPostNumber].data;
 
       fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
         res.json().then((data) => {
           if (data) {
+            console.log('got data');
             //console.log(data);
             /***
              * This is to get the comment that will have the price in it
-             */
-            setCurrentWatch(data[1].data.children);
-            let postComments = data[1].data.children;
+             */if (data[1].data.children) {
 
-            let keepItGoing = true;
 
-            postComments.forEach((post) => {
-              if (keepItGoing) {
-                if (post.data.is_submitter) {
-                  let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
-                  let noCommasPlease = post.data.body.replace(/,/g, "");
-                  let result = noCommasPlease.match(moneyRegEx);
+              setCurrentWatch(data[1].data.children);
+              let postComments = data[1].data.children;
 
-                  if (result) {
-                    //console.log(result);
-                    if (result.length > 1) {
-                      let allResults = [];
-                      result.forEach((thisResult) => {
-                        let noDolla = thisResult.replace(/\$/g, "");
-                        noDolla = noDolla.replace(/€/g, "");
-                        allResults.push(noDolla);
-                      });
+              console.log('post and comments')
+              console.log(data[0].data.children);
+              console.log(data[1].data.children);
 
-                      let lowest = 0;
-                      let nextLowest = 0;
+              let keepItGoing = true;
 
-                      allResults.forEach((price) => {
-                        let intPrice = Number(price);
-                        if (lowest === 0) {
-                          lowest = intPrice;
-                        } else {
-                          if (intPrice < lowest) {
-                            nextLowest = lowest;
+              postComments.forEach((post) => {
+                console.log('top of foreach')
+                if (keepItGoing) {
+                  if (post.data.is_submitter) {
+                    let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
+                    let noCommasPlease = post.data.body.replace(/,/g, "");
+                    let result = noCommasPlease.match(moneyRegEx);
+
+                    if (result) {
+                      if (result.length > 1) {
+                        let allResults = [];
+                        result.forEach((thisResult) => {
+                          let noDolla = thisResult.replace(/\$/g, "");
+                          noDolla = noDolla.replace(/€/g, "");
+                          allResults.push(noDolla);
+                        });
+
+                        let lowest = 0;
+                        let nextLowest = 0;
+
+                        allResults.forEach((price) => {
+                          let intPrice = Number(price);
+                          if (lowest === 0) {
                             lowest = intPrice;
+                          } else {
+                            if (intPrice < lowest) {
+                              nextLowest = lowest;
+                              lowest = intPrice;
+                            }
                           }
+                        });
+                        console.log('LOwest: ' + lowest)
+                        if (lowest < nextLowest / 2) {
+                          setWatchPrice(nextLowest);
+                          GenerateAnswers(nextLowest);
+                        } else {
+                          setWatchPrice(lowest);
+                          GenerateAnswers(lowest);
                         }
-                      });
-
-                      if (lowest < nextLowest / 2) {
-                        console.log("its doing it!");
-                        console.log(nextLowest);
-                        console.log(lowest);
-                        setWatchPrice(nextLowest);
-                        GenerateAnswers(nextLowest);
                       } else {
-                        setWatchPrice(lowest);
-                        GenerateAnswers(lowest);
+                        let noDolla = result[0].replace(/\$/g, "");
+                        noDolla = noDolla.replace(/€/g, "");
+                        setWatchPrice(Number(noDolla));
+                        GenerateAnswers(noDolla);
                       }
+
+                      keepItGoing = false;
                     } else {
-                      let noDolla = result[0].replace(/\$/g, "");
-                      noDolla = noDolla.replace(/€/g, "");
-                      setWatchPrice(Number(noDolla));
-                      GenerateAnswers(noDolla);
+                      console.log('no results')
+                      setPotentialAnswers([]);
+                      keepItGoing = false;
+
+                      nextWatch(optionalPostNumber + 1);
                     }
+                    console.log(noCommasPlease);
 
-                    keepItGoing = false;
-                  } else {
-                    setPotentialAnswers([]);
-                    keepItGoing = false;
-                    //nextWatch();
                   }
-                  console.log(noCommasPlease);
                 }
-              }
-            });
+              });//Gets images
 
-            if (data[0].data.children[0].data.media_metadata) {
-              let metaData = data[0].data.children[0].data.media_metadata;
-              let items = data[0].data.children[0].data.gallery_data.items;
+              if (data[0].data.children[0].data.media_metadata) {
+                console.log('has metadata')
+                let metaData = data[0].data.children[0].data.media_metadata;
+                let items = data[0].data.children[0].data.gallery_data.items;
 
-              let ImagesArray = [];
-              items.forEach((item) => {
-                let itemData = metaData[item.media_id];
-                let tempimgurl = itemData.s.u;
-                let imgurl = tempimgurl.replace(/amp;/g, "");
-                ImagesArray.push(imgurl);
-              });
+                let ImagesArray = [];
+                items.forEach((item) => {
+                  let itemData = metaData[item.media_id];
+                  let tempimgurl = itemData.s.u;
+                  let imgurl = tempimgurl.replace(/amp;/g, "");
+                  ImagesArray.push(imgurl);
+                });
 
-              /*
-                Sets Image Gallery
-                */
-              setCurrentImage(ImagesArray[0]);
-              setImages(ImagesArray);
-              setImageIndex(0);
-            } else {
-              setImages([]);
-              let tempUrl =
-                data[0].data.children[0].data.url_overridden_by_dest;
-              if (!tempUrl.includes("v.redd")) {
-                setCurrentImage(tempUrl);
+                /*
+                  Sets Image Gallery
+                  */
+                setCurrentImage(ImagesArray[0]);
+                setImages(ImagesArray);
+                setImageIndex(0);
               } else {
-                //nextWatch();
+                setImages([]);
+                let tempUrl =
+                  data[0].data.children[0].data.url_overridden_by_dest;
+                console.log(tempUrl)
+                if (tempUrl.includes("v.redd")) {
+                  console.log('vreddit')
+                  nextWatch(postNumber + 1);
+                } else if (tempUrl.includes("imgur")) {
+                  console.log('imgur else if')
+
+                  if (data[0].data.children[0].data.media.oembed) {
+                    console.log('oembed');
+                    console.log(data[0].data.children[0].data.media.oembed)
+                    setCurrentImage(data[0].data.children[0].data.media.toembed.humbnail_url);
+                  } else {
+                    console.log('thumb')
+                    
+                    console.log(data[0].data.children[0].data.media)
+                  }
+
+                  //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+                  //https://imgur.com/a/p1Zz504
+                  //nextWatch(optionalPostNumber + 1);
+                } else {
+                  console.log('neither')
+                  setCurrentImage(tempUrl);
+                }
               }
             }
           }
         });
       });
+    } else {
+      console.log('skippin the whole thing are we')
     }
+
   };
 
   const rotateImage = () => {
@@ -230,12 +271,27 @@ export const Quiz = () => {
   const rightAnswer = () => {
     const image = document.getElementById("activeWatch");
     image.style.transform = `rotate(1080deg)`;
-    //nextWatch();
+
+    let correctTemp = numCorrect + 1;
+    let totalTemp = numTotal + 1;
+    let percentageTemp = Math.round((correctTemp / totalTemp) * 100);
+
+    setNumCorret(correctTemp);
+    setNumTotal(totalTemp);
+    setPercentage(percentageTemp);
+    nextWatch();
   };
 
   const wrongAnswer = () => {
     const image = document.getElementById("activeWatch");
     image.style.transition = "position: absolute;";
+
+    let correctTemp = numCorrect;
+    let totalTemp = numTotal + 1;
+    let percentageTemp = Math.round((correctTemp / totalTemp) * 100);
+
+    setNumTotal(totalTemp);
+    setPercentage(percentageTemp);
   };
 
   const fetchData = () => {
@@ -265,6 +321,7 @@ export const Quiz = () => {
   return (
     <>
       <div className="pageWrapper">
+
         <div className="questionDisplay">
           <div className="leftButton">
             {images && imageIndex > 0 && (
@@ -297,12 +354,13 @@ export const Quiz = () => {
         </div>
         <div className="answersParent">
           <div className="toolBox">
-            <button className="nextWatch" onClick={nextWatch}>
+            <button className="nextWatch" onClick={() => { nextWatch(postNumber) }}>
               Next watch
             </button>
             <button className="rotate" onClick={rotateImage}>
               Rotate
             </button>
+            {percentage && <div className="score">Total: {percentage}%</div>}
           </div>
           {watchPrice && potentialAnswers && (
             <div className="answersDiv">
@@ -314,7 +372,7 @@ export const Quiz = () => {
                     </button>
                   );
                 } else {
-                  return <button className="">${answer}</button>;
+                  return <button className="" onClick={wrongAnswer}>${answer}</button>;
                 }
               })}
             </div>
