@@ -28,7 +28,7 @@ export const Quiz = () => {
   const [potentialAnswers, setPotentialAnswers] = useState([]);
   const [answerIndex, setAnswerIndex] = useState(0);
 
-  const [postNumber, setPostNumber] = useState(2);
+  const [postIndex, setPostIndex] = useState(2);
 
   const [imageRotation, setImageRotation] = useState(0);
 
@@ -40,151 +40,130 @@ export const Quiz = () => {
   const [wrongAnswerClass, setWrongAnswerClass] = useState("answer");
 
 
+  /***
+   *  THIS IS THE QUARENTINE. MAKE THESE WORK WITHOUT ALL OF THE BS
+   */
 
-  const updatePosts = (newPosts) => {
-    setPosts(newPosts);
-  };
-
-  function getRandomIntInclusive(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
-  }
+  //next watch needs to handle all of the stuff. all of this "next next watch" is dumb
+  //set nextWatchObject first
+  //if currentWatchObject it null, run it again and set currentWatchObject to nextWatchObject
 
 
-  const roundToFive = (number) => {
-
-    return (number - (number % 5))
-
-  }
-  const GenerateAnswers = (answer) => {
-    //0 is lowest
-    //1 second lowest
-    //2 second Highest
-    //3 highest
-    let index = getRandomIntInclusive(0, 3);
-    let answers = [];
-    setAnswerIndex(index);
-
-    answer = parseInt(answer);
-
-    switch (index) {
-      case 0:
-        answers.push(roundToFive(answer));
-        answers.push(roundToFive(parseInt(answer * 2)));
-        answers.push(roundToFive(parseInt(answer * 4)));
-        answers.push(roundToFive(parseInt(answer * 8)));
-        setNextWatchObject({index: 0})
-        break;
-      case 1:
-        answers.push(roundToFive(parseInt(answer / 2)));
-        answers.push(roundToFive(answer));
-        answers.push(roundToFive(parseInt(answer * 2)));
-        answers.push(roundToFive(parseInt(answer * 4)));
-        setNextWatchObject({index: 1})
-        break;
-      case 2:
-        answers.push(roundToFive(parseInt(answer / 2)));
-        answers.push(roundToFive(parseInt(answer / 4)));
-        answers.push(roundToFive(answer));
-        answers.push(roundToFive(parseInt(answer * 2)));
-        setNextWatchObject({index: 2})
-        break;
-      case 3:
-        answers.push(roundToFive(parseInt(answer / 2)));
-        answers.push(roundToFive(parseInt(answer / 4)));
-        answers.push(roundToFive(parseInt(answer / 8)));
-        answers.push(roundToFive(answer));
-        setNextWatchObject({index: 3})
-        break;
-      default:
-        break;
-    }
-
-    setPotentialAnswers(answers);
-  };
-
-  const imageChange = (index) => {
-    setImageIndex(index);
-    setCurrentWatchObj({image: images[index]})
-    //setCurrentImage(images[index]);
-  };
+  /*
+  
+  NEXT UP
 
 
-  const nextWatch = async (optionalPostNumber = postNumber) => {
+  PRICES
+  figure out these lines to work with everything
+  //setWatchPrice(nextLowest);
+  //setCurrentWatchObj({ price: nextLowest })
+  //I NEED TO MAKE A NEXTANSWERSOBJECT
+  //GenerateAnswers(nextLowest);
 
+  IMAGES
+  I PROBABLY NEED TO DO A 'NEXTIMAGES'
 
-    console.log('at the top');
-    console.log(optionalPostNumber)
-    setImageRotation(0);
-    const image = document.getElementById("activeWatch");
-    if (image) {
-      image.style.transform = `rotate(0deg)`;
-    }
-    if (nextWatchObject) {
-      setCurrentWatchObj(nextWatchObject);
-      getNextNextWatch(optionalPostNumber + 1);
+  //setCurrentImage(ImagesArray[0]);
+  //setCurrentWatchObj({ image: ImagesArray[0] })
+  //setImages(ImagesArray);
+  //setImageIndex(0);
 
-
-    } else {
-      setImageIndex(0);
-      if (posts && optionalPostNumber < posts.length) {
-        setCurrentWatchParent(posts[optionalPostNumber]);
-        setNextWatchParent(posts[optionalPostNumber + 1]);
-        setPostNumber(optionalPostNumber + 1);
-        let wp = posts[optionalPostNumber].data;
+  */
 
 
 
-        fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
-          res.json().then((data) => {
-            if (data) {
-              let success = GetPrice(data, optionalPostNumber);
-              if (success) {
+  const NextWatch = async (optionalPostNumber = postIndex) => {
+    /*
+        console.log(optionalPostNumber)
+        setImageRotation(0);
+        const image = document.getElementById("activeWatch");
+        if (image) {
+          image.style.transform = `rotate(0deg)`;
+        }
+        */
 
-                let gotImage = GetImages(data[0].data.children[0].data)
-                console.log(gotImage)
-                if (!gotImage) {
-                  console.log('aint got image');
-                  nextWatch(optionalPostNumber + 1);
+    //resets the image to the first in the index
+    setImageIndex(0);
+
+    //If posts exist and it isnt and outofbounds exception
+    if (posts && optionalPostNumber < posts.length) {
+
+      console.log('got posts');
+      //I need to do something here
+
+      /*
+      //I think i dont need this
+      setCurrentWatchParent(posts[optionalPostNumber]);
+      */
+
+      //Sets nextWatchParent and increments postIndex
+      setNextWatchParent(posts[optionalPostNumber]);
+      setPostIndex(optionalPostNumber + 1);
+      let wp = posts[optionalPostNumber].data;
+      var tempWatchObject = { price: null, image: null, index: null }
+
+
+
+      fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
+        res.json().then(async (data) => {
+          if (data) {
+            console.log('got data');
+
+            /*
+
+            Success means we got the price
+
+            */
+            let price = Promise.resolve(GetPrice(data, optionalPostNumber));
+            
+            if (price) {
+              console.log('it thinks theres a price')
+              tempWatchObject.price = price;
+              //setNextWatchObject({price: success})
+              console.log(price)
+
+              /*
+
+              GotImage means we got the image
+
+              */
+              let image = await GetImages(data[0].data.children[0].data)
+
+
+              if (!image) {
+
+                //Unsuccessful. dont set nextWatchObject and go to the next item
+                NextWatch(optionalPostNumber + 1);
+              } else {
+                tempWatchObject.image = image.image;
+
+
+                let index = await GenerateAnswers();
+
+                if (index) {
+
+                  //everything is good
+
+                  tempWatchObject.index = index
+                  //If it makes it here, it is successful
+                  if (!currentWatchObj) {
+                    setCurrentWatchObj(tempWatchObject);
+                    NextWatch(optionalPostNumber + 1);
+                  }else{
+
+                  }
                 } else {
-
+                  //no index? idk
                 }
 
-              } else {
-                console.log('next watch?')
-                nextWatch(optionalPostNumber + 1);
-              }
 
 
-
-            }
-          })
-        }).then(() => { getNextNextWatch(optionalPostNumber) });
-
-      } else {
-        console.log('skippin the whole thing are we')
-      }
-    }
-  };
-
-  const getNextNextWatch = async (optionalPostNumber = postNumber) => {
-    let nextWp = await posts[optionalPostNumber + 1].data
-    if (nextWp.permalink) {
-
-
-      fetch("https://www.reddit.com" + nextWp.permalink + ".json").then((res) => {
-        res.json().then((data) => {
-          if (data) {
-            let success = GetNextPrice(data, optionalPostNumber + 1);
-            if (success) {
-              let gotImage = GetNextImages(data[0].data.children[0].data)
-              if (!gotImage) {
-                nextWatch(optionalPostNumber + 1);
               }
 
             } else {
-              nextWatch(optionalPostNumber + 1);
+              console.log('fail')
+              NextWatch(optionalPostNumber + 1);
             }
 
 
@@ -194,9 +173,13 @@ export const Quiz = () => {
       })
 
     } else {
-      console.log('fail')
+      
+      console.log('skippin the whole thing are we')
     }
-  }
+
+  };
+
+
   const GetPrice = (data, optionalPostNumber) => {
 
     var promise = new Promise(() => {
@@ -241,23 +224,26 @@ export const Quiz = () => {
                     }
                   });
                   if (lowest < nextLowest / 2) {
-                    setWatchPrice(nextLowest);
-                    setCurrentWatchObj({ price: nextLowest })
+
+                    //setWatchPrice(nextLowest);
+                    //setCurrentWatchObj({ price: nextLowest })
+
+                    //I NEED TO MAKE A NEXTANSWERSOBJECT
                     GenerateAnswers(nextLowest);
-                    Promise.resolve(true);
+                    Promise.resolve(nextLowest);
                   } else {
                     setWatchPrice(lowest);
-                    setCurrentWatchObj({ price: lowest })
+                    //setCurrentWatchObj({ price: lowest })
                     GenerateAnswers(lowest);
-                    Promise.resolve(true);
+                    Promise.resolve(lowest);
                   }
                 } else {
                   let noDolla = result[0].replace(/\$/g, "");
                   noDolla = noDolla.replace(/€/g, "");
                   setWatchPrice(Number(noDolla));
-                  setCurrentWatchObj({ price: Number(noDolla) })
+                  //setCurrentWatchObj({ price: Number(noDolla) })
                   GenerateAnswers(noDolla);
-                  Promise.resolve(true);
+                  Promise.resolve(Number(noDolla));
                 }
               } else {
                 setPotentialAnswers([]);
@@ -278,89 +264,7 @@ export const Quiz = () => {
     return promise;
   }
 
-  const GetNextPrice = (data, optionalPostNumber) => {
 
-    var promise = new Promise(() => {
-
-
-    /***
-     * This is to get the comment that will have the price in it
-     */if (data[1].data.children) {
-
-
-        setCurrentWatch(data[1].data.children);
-        let postComments = data[1].data.children;
-
-        let keepItGoing = true;
-
-        postComments.forEach((post) => {
-          if (keepItGoing) {
-            if (post.data.is_submitter) {
-              let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
-              let noCommasPlease = post.data.body.replace(/,/g, "");
-              let result = noCommasPlease.match(moneyRegEx);
-              console.log(noCommasPlease);
-
-              if (result) {
-                if (result.length > 1) {
-                  let allResults = [];
-                  result.forEach((thisResult) => {
-                    let noDolla = thisResult.replace(/\$/g, "");
-                    noDolla = noDolla.replace(/€/g, "");
-                    allResults.push(noDolla);
-                  });
-                  let lowest = 0;
-                  let nextLowest = 0;
-
-                  allResults.forEach((price) => {
-                    let intPrice = Number(price);
-                    if (lowest === 0) {
-                      lowest = intPrice;
-                    } else {
-                      if (intPrice < lowest) {
-                        nextLowest = lowest;
-                        lowest = intPrice;
-                      }
-                    }
-                  });
-                  if (lowest < nextLowest / 2) {
-                    setNextWatchPrice(nextLowest);
-                    setNextWatchObject({price: nextLowest});
-                    GenerateAnswers(nextLowest);
-                    Promise.resolve(true);
-                  } else {
-                    setNextWatchPrice(lowest);
-                    setNextWatchObject({price: lowest});
-                    GenerateAnswers(lowest);
-                    Promise.resolve(true);
-                  }
-                } else {
-                  let noDolla = result[0].replace(/\$/g, "");
-                  noDolla = noDolla.replace(/€/g, "");
-                  setNextWatchPrice(Number(noDolla));
-
-                  setNextWatchObject({price: Number(noDolla)});
-                  GenerateAnswers(noDolla);
-                  Promise.resolve(true);
-                }
-              } else {
-                //setPotentialAnswers([]);
-                keepItGoing = false;
-                Promise.resolve(false);
-              }
-
-            }
-          }
-        });
-
-      } else {
-
-        Promise.resolve(false);
-      }
-    });
-
-    return promise;
-  }
 
   const GetImages = (data) => {
 
@@ -383,27 +287,29 @@ export const Quiz = () => {
           Sets Image Gallery
           */
         //setCurrentImage(ImagesArray[0]);
-        setCurrentWatchObj({ image: ImagesArray[0] })
-        setImages(ImagesArray);
+        //setCurrentWatchObj({ image: ImagesArray[0] })
+        //setImages(ImagesArray);
         setImageIndex(0);
-        Promise.resolve(true);
+        Promise.resolve({ images: ImagesArray, image: ImagesArray[0] });
       } else {
+
         setImages([]);
-        let tempUrl =
-          data.url_overridden_by_dest;
-        console.log(tempUrl)
+        let tempUrl = data.url_overridden_by_dest;
+
+
+
         if (tempUrl.includes("v.redd")) {
+          //If it is a video link
           console.log('vreddit')
           Promise.resolve(false);
         } else if (tempUrl.includes("imgur")) {
+          //If it is an imgur link
           console.log('imgur else if')
-
           if (data.media.oembed) {
             console.log('oembed');
             let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
             //setCurrentImage(fullPic);
-            setCurrentWatchObj({ image: fullPic })
-            Promise.resolve(true);
+            Promise.resolve({ image: fullPic });
           } else {
             Promise.resolve(false);
           }
@@ -413,69 +319,92 @@ export const Quiz = () => {
           //nextWatch(optionalPostNumber + 1);
         } else {
           //setCurrentImage(tempUrl);
-          setCurrentWatchObj({ image: tempUrl });
-          Promise.resolve(true);
+          //setCurrentWatchObj({ image: tempUrl });
+          Promise.resolve({ image: tempUrl });
         }
       }
     });
     return promise;
   }
 
-  const GetNextImages = (data) => {
-
-    var promise = new Promise(() => {
 
 
-      if (data.media_metadata) {
-        let metaData = data.media_metadata;
-        let items = data.gallery_data.items;
 
-        let ImagesArray = [];
-        items.forEach((item) => {
-          let itemData = metaData[item.media_id];
-          let tempimgurl = itemData.s.u;
-          let imgurl = tempimgurl.replace(/amp;/g, "");
-          ImagesArray.push(imgurl);
-        });
+  /**
+   * QUARENTINE OVA
+   */
 
-        /*
-          Sets Image Gallery
-          */
-        setNextImage(ImagesArray[0]);
-        setNextImages(ImagesArray);
-        Promise.resolve(true);
-      } else {
-        setImages([]);
-        let tempUrl =
-          data.url_overridden_by_dest;
-        console.log(tempUrl)
-        if (tempUrl.includes("v.redd")) {
-          console.log('vreddit')
-          Promise.resolve(false);
-        } else if (tempUrl.includes("imgur")) {
-          console.log('imgur else if')
+  const updatePosts = (newPosts) => {
+    setPosts(newPosts);
+  };
 
-          if (data.media.oembed) {
-            console.log('oembed');
-            let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
-            setNextWatchObject({image: fullPic});
-            Promise.resolve(true);
-          } else {
-            Promise.resolve(false);
-          }
-
-          //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-          //https://imgur.com/a/p1Zz504
-          //nextWatch(optionalPostNumber + 1);
-        } else {
-          console.log('neither')
-          setNextWatchObject({image: tempUrl});
-          Promise.resolve(true);
-        }
-      }
-    });
-    return promise;
+  const getRandomIntInclusive = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
   }
+
+
+  const roundToFive = (number) => {
+
+    return (number - (number % 5))
+
+  }
+  const GenerateAnswers = (answer) => {
+    //0 is lowest
+    //1 second lowest
+    //2 second Highest
+    //3 highest
+    let index = getRandomIntInclusive(0, 3);
+    let answers = [];
+    setAnswerIndex(index);
+
+    answer = parseInt(answer);
+
+    switch (index) {
+      case 0:
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
+        answers.push(roundToFive(parseInt(answer * 4)));
+        answers.push(roundToFive(parseInt(answer * 8)));
+        setNextWatchObject({ index: 0 })
+        break;
+      case 1:
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
+        answers.push(roundToFive(parseInt(answer * 4)));
+        setNextWatchObject({ index: 1 })
+        break;
+      case 2:
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(parseInt(answer / 4)));
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
+        setNextWatchObject({ index: 2 })
+        break;
+      case 3:
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(parseInt(answer / 4)));
+        answers.push(roundToFive(parseInt(answer / 8)));
+        answers.push(roundToFive(answer));
+        setNextWatchObject({ index: 3 })
+        break;
+      default:
+        break;
+    }
+
+    setPotentialAnswers(answers);
+  };
+
+  const imageChange = (index) => {
+    setImageIndex(index);
+    setCurrentWatchObj({ image: images[index] })
+    //setCurrentImage(images[index]);
+  };
+
+
+
 
   const rotateImage = () => {
     const image = document.getElementById("activeWatch");
@@ -497,7 +426,7 @@ export const Quiz = () => {
     await timeout(2000);
     setCorrectAnswerClass("answer");
     setWrongAnswerClass("answer");
-    nextWatch();
+    NextWatch();
   }
 
   const rightAnswer = () => {
@@ -507,9 +436,6 @@ export const Quiz = () => {
     let correctTemp = numCorrect + 1;
     let totalTemp = numTotal + 1;
     let percentageTemp = Math.round((correctTemp / totalTemp) * 100);
-
-
-
 
     setNumCorret(correctTemp);
     setNumTotal(totalTemp);
@@ -539,19 +465,21 @@ export const Quiz = () => {
         res.json().then((data) => {
           if (data) {
             updatePosts(data.data.children);
-            nextWatch();
+            NextWatch();
           }
         });
       }
     );
   };
+
   useEffect(() => {
     if (posts) {
-      nextWatch();
+      NextWatch();
     } else {
       fetchData();
     }
   }, [posts]);
+
 
   return (
     <>
@@ -574,7 +502,7 @@ export const Quiz = () => {
             <div className="activeWatch">
               <img src={currentWatchObj.image} alt="watch" id="activeWatch" />
               {nextWatchObject.image && <img src={nextWatchObject.image} alt="watch" id="activeWatch" />}
-               </div>
+            </div>
           )}
           <div className="rightButton ">
             {images && imageIndex < images.length - 1 && (
@@ -591,7 +519,7 @@ export const Quiz = () => {
         <div className="answersParent">
           <div className="toolBox">
             <div className="">
-              <button className="nextWatch" onClick={() => { nextWatch(postNumber) }}>
+              <button className="nextWatch" onClick={() => { NextWatch(postIndex) }}>
                 Next watch
               </button></div>
             <div className="">
