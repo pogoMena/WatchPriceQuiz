@@ -6,11 +6,21 @@ export const Quiz = () => {
   //secret: K07J2yPPhzObBT1wyXTFdGTmjzNOEg
   const [currentWatchParent, setCurrentWatchParent] = useState("");
   const [currentWatch, setCurrentWatch] = useState("");
+  const [currentWatchObj, setCurrentWatchObj] = useState({ image: null, price: null, index: null });
+
+  const [nextWatchObject, setNextWatchObject] = useState({ image: null, price: null, index: null });
+  const [nextWatchParent, setNextWatchParent] = useState("");
 
   const [watchPrice, setWatchPrice] = useState(0);
 
   const [currentImage, setCurrentImage] = useState("");
   const [images, setImages] = useState([]);
+
+  const [nextImage, setNextImage] = useState("");
+  const [nextImages, setNextImages] = useState([]);
+
+  const [nextWatchPrice, setNextWatchPrice] = useState(0);
+
 
   const [imageIndex, setImageIndex] = useState(0);
   const [posts, setPosts] = useState(null);
@@ -26,6 +36,11 @@ export const Quiz = () => {
   const [numTotal, setNumTotal] = useState(0);
   const [percentage, setPercentage] = useState(0);
 
+  const [correctAnswerClass, setCorrectAnswerClass] = useState("answer");
+  const [wrongAnswerClass, setWrongAnswerClass] = useState("answer");
+
+
+
   const updatePosts = (newPosts) => {
     setPosts(newPosts);
   };
@@ -35,24 +50,12 @@ export const Quiz = () => {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
   }
-  function shuffle(array) {
-    let currentIndex = array.length,
-      randomIndex;
 
-    // While there remain elements to shuffle.
-    while (currentIndex != 0) {
-      // Pick a remaining element.
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
 
-      // And swap it with the current element.
-      [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex],
-        array[currentIndex],
-      ];
-    }
+  const roundToFive = (number) => {
 
-    return array;
+    return (number - (number % 5))
+
   }
   const GenerateAnswers = (answer) => {
     //0 is lowest
@@ -67,29 +70,29 @@ export const Quiz = () => {
 
     switch (index) {
       case 0:
-        answers.push(answer);
-        answers.push(parseInt(answer * 2));
-        answers.push(parseInt(answer * 4));
-        answers.push(parseInt(answer * 8));
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
+        answers.push(roundToFive(parseInt(answer * 4)));
+        answers.push(roundToFive(parseInt(answer * 8)));
         break;
       case 1:
-        answers.push(parseInt(answer / 2));
-        answers.push(answer);
-        answers.push(parseInt(answer * 2));
-        answers.push(parseInt(answer * 4));
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
+        answers.push(roundToFive(parseInt(answer * 4)));
 
         break;
       case 2:
-        answers.push(parseInt(answer / 2));
-        answers.push(parseInt(answer / 4));
-        answers.push(answer);
-        answers.push(parseInt(answer * 2));
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(parseInt(answer / 4)));
+        answers.push(roundToFive(answer));
+        answers.push(roundToFive(parseInt(answer * 2)));
         break;
       case 3:
-        answers.push(parseInt(answer / 2));
-        answers.push(parseInt(answer / 4));
-        answers.push(parseInt(answer / 8));
-        answers.push(answer);
+        answers.push(roundToFive(parseInt(answer / 2)));
+        answers.push(roundToFive(parseInt(answer / 4)));
+        answers.push(roundToFive(parseInt(answer / 8)));
+        answers.push(roundToFive(answer));
         break;
       default:
         break;
@@ -114,45 +117,187 @@ export const Quiz = () => {
     if (image) {
       image.style.transform = `rotate(0deg)`;
     }
+    if (nextWatchObject) {
+      setCurrentWatchObj(nextWatchObject);
+      getNextNextWatch(optionalPostNumber + 1);
 
-    setImageIndex(0);
-    if (posts && optionalPostNumber < posts.length) {
-      setCurrentWatchParent(posts[optionalPostNumber]);
-      setPostNumber(optionalPostNumber + 1);
-      console.log(optionalPostNumber);
-      let wp = posts[optionalPostNumber].data;
 
-      fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
-        res.json().then(async (data) => {
-          if (data) {
+    } else {
+      setImageIndex(0);
+      if (posts && optionalPostNumber < posts.length) {
+        setCurrentWatchParent(posts[optionalPostNumber]);
+        setNextWatchParent(posts[optionalPostNumber + 1]);
+        setPostNumber(optionalPostNumber + 1);
+        console.log(optionalPostNumber);
+        let wp = posts[optionalPostNumber].data;
 
-console.log('lets go')
-            await GetPrice(data, optionalPostNumber).then(async (success) => {
+
+
+        fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
+          res.json().then((data) => {
+            if (data) {
+
+              console.log('lets go')
+              let success = GetPrice(data, optionalPostNumber);
               console.log(success)
+              console.log('yoooo')
               if (success) {
 
-                await GetImages(data[0].data.children[0].data).then((gotImage) => {
-                  console.log(gotImage)
-                  if (!gotImage) {
-                    nextWatch(optionalPostNumber + 1);
-                  }
-                });
+                let gotImage = GetImages(data[0].data.children[0].data)
+                console.log(gotImage)
+                if (!gotImage) {
+                  console.log('aint got image');
+                  nextWatch(optionalPostNumber + 1);
+                } else {
+
+                }
+
               } else {
                 console.log('next watch?')
                 nextWatch(optionalPostNumber + 1);
               }
-            });
+
+
+
+            }
+          })
+        }).then(() => { getNextNextWatch(optionalPostNumber + 1) });
+
+      } else {
+        console.log('skippin the whole thing are we')
+      }
+    }
+  };
+
+  const getNextNextWatch = async (optionalPostNumber = postNumber + 1) => {
+
+    let nextWp = await posts[optionalPostNumber + 1].data
+    console.log('its right before nextwp')
+    console.log(nextWp)
+
+    if (nextWp.permalink) {
+
+
+      fetch("https://www.reddit.com" + nextWp.permalink + ".json").then((res) => {
+        res.json().then((data) => {
+          console.log('looking for next image')
+          if (data) {
+            let success = GetNextPrice(data, optionalPostNumber + 1);
+            if (success) {
+              let gotImage = GetNextImages(data[0].data.children[0].data)
+              console.log(gotImage)
+              if (!gotImage) {
+                console.log('aint got image');
+                nextWatch(optionalPostNumber + 1);
+              }
+
+            } else {
+              console.log('next watch?')
+              nextWatch(optionalPostNumber + 1);
+            }
+
 
 
           }
-        });
-      });
-    } else {
-      console.log('skippin the whole thing are we')
-    }
+        })
+      })
 
-  };
+    } else {
+      console.log('fail')
+    }
+  }
   const GetPrice = (data, optionalPostNumber) => {
+
+    var promise = new Promise(() => {
+
+
+    //console.log(data);
+    /***
+     * This is to get the comment that will have the price in it
+     */if (data[1].data.children) {
+
+
+        setCurrentWatch(data[1].data.children);
+        let postComments = data[1].data.children;
+
+        console.log('post and comments')
+        console.log(data[0].data.children);
+        console.log(data[1].data.children);
+
+        let keepItGoing = true;
+
+        postComments.forEach((post) => {
+          console.log('top of foreach')
+          if (keepItGoing) {
+            if (post.data.is_submitter) {
+              let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
+              let noCommasPlease = post.data.body.replace(/,/g, "");
+              let result = noCommasPlease.match(moneyRegEx);
+              console.log(noCommasPlease);
+
+              if (result) {
+                if (result.length > 1) {
+                  let allResults = [];
+                  result.forEach((thisResult) => {
+                    let noDolla = thisResult.replace(/\$/g, "");
+                    noDolla = noDolla.replace(/€/g, "");
+                    allResults.push(noDolla);
+                  });
+                  let lowest = 0;
+                  let nextLowest = 0;
+
+                  allResults.forEach((price) => {
+                    let intPrice = Number(price);
+                    if (lowest === 0) {
+                      lowest = intPrice;
+                    } else {
+                      if (intPrice < lowest) {
+                        nextLowest = lowest;
+                        lowest = intPrice;
+                      }
+                    }
+                  });
+                  if (lowest < nextLowest / 2) {
+                    setWatchPrice(nextLowest);
+                    setCurrentWatchObj({ price: nextLowest })
+                    GenerateAnswers(nextLowest);
+                    Promise.resolve(true);
+                  } else {
+                    setWatchPrice(lowest);
+                    setCurrentWatchObj({ price: lowest })
+                    GenerateAnswers(lowest);
+                    Promise.resolve(true);
+                  }
+                } else {
+                  let noDolla = result[0].replace(/\$/g, "");
+                  noDolla = noDolla.replace(/€/g, "");
+                  setWatchPrice(Number(noDolla));
+                  setCurrentWatchObj({ price: Number(noDolla) })
+                  GenerateAnswers(noDolla);
+                  Promise.resolve(true);
+                }
+              } else {
+                console.log('no results')
+                setPotentialAnswers([]);
+                keepItGoing = false;
+                Promise.resolve(false);
+              }
+
+            }
+          }
+        });
+
+      } else {
+
+        console.log('aint nuthin')
+        Promise.resolve(false);
+      }
+    });
+
+    return promise;
+  }
+
+  const GetNextPrice = (data, optionalPostNumber) => {
 
     var promise = new Promise(() => {
 
@@ -183,6 +328,7 @@ console.log('lets go')
               let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
               let noCommasPlease = post.data.body.replace(/,/g, "");
               let result = noCommasPlease.match(moneyRegEx);
+              console.log(noCommasPlease);
 
               if (result) {
                 if (result.length > 1) {
@@ -192,7 +338,6 @@ console.log('lets go')
                     noDolla = noDolla.replace(/€/g, "");
                     allResults.push(noDolla);
                   });
-
                   let lowest = 0;
                   let nextLowest = 0;
 
@@ -207,35 +352,32 @@ console.log('lets go')
                       }
                     }
                   });
-                  console.log('LOwest: ' + lowest)
                   if (lowest < nextLowest / 2) {
-                    setWatchPrice(nextLowest);
-                    GenerateAnswers(nextLowest);
+                    setNextWatchPrice(nextLowest);
+                    //GenerateAnswers(nextLowest);
                     Promise.resolve(true);
                   } else {
-                    setWatchPrice(lowest);
-                    GenerateAnswers(lowest);
+                    setNextWatchPrice(lowest);
+                    //GenerateAnswers(lowest);
                     Promise.resolve(true);
                   }
                 } else {
                   let noDolla = result[0].replace(/\$/g, "");
                   noDolla = noDolla.replace(/€/g, "");
-                  setWatchPrice(Number(noDolla));
-                  GenerateAnswers(noDolla);
+                  setNextWatchPrice(Number(noDolla));
+                  //GenerateAnswers(noDolla);
                   Promise.resolve(true);
                 }
               } else {
                 console.log('no results')
-                setPotentialAnswers([]);
+                //setPotentialAnswers([]);
                 keepItGoing = false;
                 Promise.resolve(false);
               }
 
             }
           }
-        });//Gets images
-
-
+        });
 
       } else {
 
@@ -249,7 +391,7 @@ console.log('lets go')
 
   const GetImages = (data) => {
 
-    var promise = new Promise((data) => {
+    var promise = new Promise(() => {
 
 
       if (data.media_metadata) {
@@ -269,6 +411,7 @@ console.log('lets go')
           Sets Image Gallery
           */
         setCurrentImage(ImagesArray[0]);
+        setCurrentWatchObj({ image: ImagesArray[0] })
         setImages(ImagesArray);
         setImageIndex(0);
         Promise.resolve(true);
@@ -288,6 +431,7 @@ console.log('lets go')
             console.log(data.media.oembed)
             let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
             setCurrentImage(fullPic);
+            setCurrentWatchObj({ image: fullPic })
             Promise.resolve(true);
           } else {
             console.log('thumb')
@@ -302,6 +446,68 @@ console.log('lets go')
         } else {
           console.log('neither')
           setCurrentImage(tempUrl);
+          setCurrentWatchObj({ image: tempUrl });
+          Promise.resolve(true);
+        }
+      }
+    });
+    return promise;
+  }
+
+  const GetNextImages = (data) => {
+
+    var promise = new Promise(() => {
+
+
+      if (data.media_metadata) {
+        console.log('has metadata')
+        let metaData = data.media_metadata;
+        let items = data.gallery_data.items;
+
+        let ImagesArray = [];
+        items.forEach((item) => {
+          let itemData = metaData[item.media_id];
+          let tempimgurl = itemData.s.u;
+          let imgurl = tempimgurl.replace(/amp;/g, "");
+          ImagesArray.push(imgurl);
+        });
+
+        /*
+          Sets Image Gallery
+          */
+        setNextImage(ImagesArray[0]);
+        setNextImages(ImagesArray);
+        Promise.resolve(true);
+      } else {
+        setImages([]);
+        let tempUrl =
+          data.url_overridden_by_dest;
+        console.log(tempUrl)
+        if (tempUrl.includes("v.redd")) {
+          console.log('vreddit')
+          Promise.resolve(false);
+        } else if (tempUrl.includes("imgur")) {
+          console.log('imgur else if')
+
+          if (data.media.oembed) {
+            console.log('oembed');
+            console.log(data.media.oembed)
+            let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
+            setNextImage(fullPic);
+            Promise.resolve(true);
+          } else {
+            console.log('thumb')
+
+            console.log(data.media)
+            Promise.resolve(false);
+          }
+
+          //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+          //https://imgur.com/a/p1Zz504
+          //nextWatch(optionalPostNumber + 1);
+        } else {
+          console.log('neither')
+          setNextImage(tempUrl);
           Promise.resolve(true);
         }
       }
@@ -317,24 +523,41 @@ console.log('lets go')
 
     image.style.transform = `rotate(${imageRotateTemp}deg)`;
   };
+  function timeout(delay) {
+    return new Promise(res => setTimeout(res, delay));
+  }
+  const handleGlow = async () => {
+    const answers = document.getElementsByClassName('answer');
+    setCorrectAnswerClass("correctanswer");
+    setWrongAnswerClass("wronganswer");
+
+
+    await timeout(2000);
+    setCorrectAnswerClass("answer");
+    setWrongAnswerClass("answer");
+    nextWatch();
+  }
 
   const rightAnswer = () => {
     const image = document.getElementById("activeWatch");
-    image.style.transform = `rotate(1080deg)`;
-
+    //image.style.transform = `rotate(1080deg)`;
+    handleGlow();
     let correctTemp = numCorrect + 1;
     let totalTemp = numTotal + 1;
     let percentageTemp = Math.round((correctTemp / totalTemp) * 100);
 
+
+
+
     setNumCorret(correctTemp);
     setNumTotal(totalTemp);
     setPercentage(percentageTemp);
-    nextWatch();
   };
 
   const wrongAnswer = () => {
     const image = document.getElementById("activeWatch");
-    image.style.transition = "position: absolute;";
+    //image.style.transition = "position: absolute;";
+    handleGlow();
 
     let correctTemp = numCorrect;
     let totalTemp = numTotal + 1;
@@ -388,6 +611,8 @@ console.log('lets go')
           {currentImage && (
             <div className="activeWatch">
               <img src={currentImage} alt="watch" id="activeWatch" />
+              {nextImage && <img src={nextImage} alt="watch" id="activeWatch" />}
+              {currentWatchObj.image && <img src={currentWatchObj.image} alt="watch" id="activeWatch" />}
             </div>
           )}
           <div className="rightButton ">
@@ -404,12 +629,14 @@ console.log('lets go')
         </div>
         <div className="answersParent">
           <div className="toolBox">
-            <button className="nextWatch" onClick={() => { nextWatch(postNumber) }}>
-              Next watch
-            </button>
-            <button className="rotate" onClick={rotateImage}>
-              Rotate
-            </button>
+            <div className="">
+              <button className="nextWatch" onClick={() => { nextWatch(postNumber) }}>
+                Next watch
+              </button></div>
+            <div className="">
+              <button className="rotate" onClick={rotateImage}>
+                Rotate
+              </button></div>
             <div className="score">Total: {percentage}%</div>
           </div>
           {watchPrice && potentialAnswers && (
@@ -417,12 +644,12 @@ console.log('lets go')
               {potentialAnswers.map((answer, index) => {
                 if (index === answerIndex) {
                   return (
-                    <button className="correct" onClick={rightAnswer} key={index}>
+                    <button className={correctAnswerClass} onClick={rightAnswer} key={index}>
                       ${answer}
                     </button>
                   );
                 } else {
-                  return <button className="" onClick={wrongAnswer} key={index}>${answer}</button>;
+                  return <button className={wrongAnswerClass} onClick={wrongAnswer} key={index}>${answer}</button>;
                 }
               })}
             </div>
