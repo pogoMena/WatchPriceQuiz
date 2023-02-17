@@ -96,6 +96,7 @@ background-color:aliceblue;
 }
 .correct {
   background-color: blue;
+  animation: rotation 2s infinite linear;
 }
 
 .nextWatch{
@@ -107,6 +108,7 @@ background-color:aliceblue;
     width: 100%;
 
 }
+
 .score{
     padding: 5px;
     text-align: center;
