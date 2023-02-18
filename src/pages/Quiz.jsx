@@ -404,8 +404,7 @@ export const Quiz = () => {
 
   const imageChange = (index) => {
     setImageIndex(index);
-    setCurrentWatchObj({ image: images[index] })
-    //setCurrentImage(images[index]);
+    setCurrentWatchObj({ image: {image: currentWatchObj.image.images[index], image: currentWatchObj.image.images} });
   };
 
 
@@ -502,17 +501,17 @@ export const Quiz = () => {
               </button>
             )}
           </div>
-          {currentWatchObj.image && currentWatchObj.image.images === null &&
+          {currentWatchObj.image &&  currentWatchObj.image.image &&
           <div className="activeWatch">
-            <img src={currentWatchObj.image.image} alt="" />
+            <img src={currentWatchObj.image.image} alt="watch" />
           </div>}
-          {currentWatchObj.image && currentWatchObj.image.images &&
+          {currentWatchObj.image &&  !currentWatchObj.image.image &&
           <div className="activeWatch">
-            <img src={currentWatchObj.image.images[imageIndex]} alt="" />
+            <img src={currentWatchObj.image} alt="watch" />
           </div>}
 
           <div className="rightButton ">
-            {currentWatchObj.image && currentWatchObj.image.images && imageIndex < currentWatchObj.image.images.length - 1 && (
+            {currentWatchObj.image && currentWatchObj.image.image && imageIndex < currentWatchObj.image.images.length - 1 && (
               <button
                 className=""
                 onClick={() => {
