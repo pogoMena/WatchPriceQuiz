@@ -16,17 +16,10 @@ export const Quiz = () => {
   //const [currentImage, setCurrentImage] = useState("");
   const [images, setImages] = useState([]);
 
-  const [nextImage, setNextImage] = useState("");
-  const [nextImages, setNextImages] = useState([]);
-
-  const [nextWatchPrice, setNextWatchPrice] = useState(0);
-
-
   const [imageIndex, setImageIndex] = useState(0);
   const [posts, setPosts] = useState(null);
 
   const [potentialAnswers, setPotentialAnswers] = useState([]);
-  const [answerIndex, setAnswerIndex] = useState(0);
 
   const [postIndex, setPostIndex] = useState(2);
 
@@ -115,49 +108,58 @@ export const Quiz = () => {
             Success means we got the price
 
             */
-            let price = Promise.resolve(GetPrice(data, optionalPostNumber));
-            
+            let price = await GetPrice(data, optionalPostNumber);
+
+
+            console.log(price);
+            console.log('yo')
+
             if (price) {
               console.log('it thinks theres a price')
               tempWatchObject.price = price;
               //setNextWatchObject({price: success})
               console.log(price)
 
+
               /*
 
-              GotImage means we got the image
+              WE ARE GOOD TO THIS POINT
 
               */
+              console.log('image is next')
               let image = await GetImages(data[0].data.children[0].data)
 
+
+              console.log(image)
 
               if (!image) {
 
                 //Unsuccessful. dont set nextWatchObject and go to the next item
                 NextWatch(optionalPostNumber + 1);
               } else {
-                tempWatchObject.image = image.image;
+                tempWatchObject.image = image;
 
 
-                let index = await GenerateAnswers();
+                let index = await GenerateAnswers(price);
+                console.log(index)
 
+                console.log('almost there')
                 if (index) {
-
+                  tempWatchObject.index = index
                   //everything is good
 
-                  tempWatchObject.index = index
                   //If it makes it here, it is successful
+                  console.log(tempWatchObject);
                   if (!currentWatchObj) {
                     setCurrentWatchObj(tempWatchObject);
                     NextWatch(optionalPostNumber + 1);
-                  }else{
-
+                  } else {
+                    setCurrentWatchObj(nextWatchObject);
+                    setNextWatchObject(tempWatchObject);
                   }
                 } else {
                   //no index? idk
                 }
-
-
 
               }
 
@@ -173,16 +175,16 @@ export const Quiz = () => {
       })
 
     } else {
-      
+
       console.log('skippin the whole thing are we')
     }
 
   };
 
 
-  const GetPrice = (data, optionalPostNumber) => {
+  async function GetPrice(data, optionalPostNumber) {
 
-    var promise = new Promise(() => {
+
 
 
     /***
@@ -190,141 +192,143 @@ export const Quiz = () => {
      */if (data[1].data.children) {
 
 
-        setCurrentWatch(data[1].data.children);
-        let postComments = data[1].data.children;
-        let keepItGoing = true;
+      setCurrentWatch(data[1].data.children);
+      let postComments = data[1].data.children;
+      let keepItGoing = true;
 
-        postComments.forEach((post) => {
-          if (keepItGoing) {
-            if (post.data.is_submitter) {
-              let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
-              let noCommasPlease = post.data.body.replace(/,/g, "");
-              let result = noCommasPlease.match(moneyRegEx);
+      let finalResult = false;
 
-              if (result) {
-                if (result.length > 1) {
-                  let allResults = [];
-                  result.forEach((thisResult) => {
-                    let noDolla = thisResult.replace(/\$/g, "");
-                    noDolla = noDolla.replace(/€/g, "");
-                    allResults.push(noDolla);
-                  });
-                  let lowest = 0;
-                  let nextLowest = 0;
+      postComments.forEach((post) => {
+        if (keepItGoing) {
+          if (post.data.is_submitter) {
+            let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
+            let noCommasPlease = post.data.body.replace(/,/g, "");
+            let result = noCommasPlease.match(moneyRegEx);
 
-                  allResults.forEach((price) => {
-                    let intPrice = Number(price);
-                    if (lowest === 0) {
-                      lowest = intPrice;
-                    } else {
-                      if (intPrice < lowest) {
-                        nextLowest = lowest;
-                        lowest = intPrice;
-                      }
-                    }
-                  });
-                  if (lowest < nextLowest / 2) {
-
-                    //setWatchPrice(nextLowest);
-                    //setCurrentWatchObj({ price: nextLowest })
-
-                    //I NEED TO MAKE A NEXTANSWERSOBJECT
-                    GenerateAnswers(nextLowest);
-                    Promise.resolve(nextLowest);
-                  } else {
-                    setWatchPrice(lowest);
-                    //setCurrentWatchObj({ price: lowest })
-                    GenerateAnswers(lowest);
-                    Promise.resolve(lowest);
-                  }
-                } else {
-                  let noDolla = result[0].replace(/\$/g, "");
+            if (result) {
+              if (result.length > 1) {
+                let allResults = [];
+                result.forEach((thisResult) => {
+                  let noDolla = thisResult.replace(/\$/g, "");
                   noDolla = noDolla.replace(/€/g, "");
-                  setWatchPrice(Number(noDolla));
-                  //setCurrentWatchObj({ price: Number(noDolla) })
-                  GenerateAnswers(noDolla);
-                  Promise.resolve(Number(noDolla));
+                  allResults.push(noDolla);
+                });
+                let lowest = 0;
+                let nextLowest = 0;
+
+                allResults.forEach((price) => {
+                  let intPrice = Number(price);
+                  if (lowest === 0) {
+                    lowest = intPrice;
+                  } else {
+                    if (intPrice < lowest) {
+                      nextLowest = lowest;
+                      lowest = intPrice;
+                    }
+                  }
+                });
+                if (lowest < nextLowest / 2) {
+
+                  //setWatchPrice(nextLowest);
+                  //setCurrentWatchObj({ price: nextLowest })
+
+                  //I NEED TO MAKE A NEXTANSWERSOBJECT
+                  GenerateAnswers(nextLowest);
+                  finalResult = nextLowest;
+                  keepItGoing = false;
+                } else {
+                  setWatchPrice(lowest);
+                  //setCurrentWatchObj({ price: lowest })
+                  GenerateAnswers(lowest);
+                  console.log(lowest)
+                  finalResult = lowest;
+                  keepItGoing = false;
                 }
               } else {
-                setPotentialAnswers([]);
+                let noDolla = result[0].replace(/\$/g, "");
+                noDolla = noDolla.replace(/€/g, "");
+                setWatchPrice(Number(noDolla));
+                //setCurrentWatchObj({ price: Number(noDolla) })
+                GenerateAnswers(noDolla);
+                finalResult = Number(noDolla);
                 keepItGoing = false;
-                Promise.resolve(false);
               }
-
+            } else {
+              setPotentialAnswers([]);
+              keepItGoing = false;
             }
+
           }
-        });
+        }
+      });
+      return finalResult;
 
-      } else {
+    } else {
 
-        Promise.resolve(false);
-      }
-    });
+      return false;
+    }
 
-    return promise;
   }
 
 
 
-  const GetImages = (data) => {
-
-    var promise = new Promise(() => {
-
-
-      if (data.media_metadata) {
-        let metaData = data.media_metadata;
-        let items = data.gallery_data.items;
-
-        let ImagesArray = [];
-        items.forEach((item) => {
-          let itemData = metaData[item.media_id];
-          let tempimgurl = itemData.s.u;
-          let imgurl = tempimgurl.replace(/amp;/g, "");
-          ImagesArray.push(imgurl);
-        });
-
-        /*
-          Sets Image Gallery
-          */
-        //setCurrentImage(ImagesArray[0]);
-        //setCurrentWatchObj({ image: ImagesArray[0] })
-        //setImages(ImagesArray);
-        setImageIndex(0);
-        Promise.resolve({ images: ImagesArray, image: ImagesArray[0] });
-      } else {
-
-        setImages([]);
-        let tempUrl = data.url_overridden_by_dest;
+  const GetImages = async (data) => {
 
 
 
-        if (tempUrl.includes("v.redd")) {
-          //If it is a video link
-          console.log('vreddit')
-          Promise.resolve(false);
-        } else if (tempUrl.includes("imgur")) {
-          //If it is an imgur link
-          console.log('imgur else if')
-          if (data.media.oembed) {
-            console.log('oembed');
-            let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
-            //setCurrentImage(fullPic);
-            Promise.resolve({ image: fullPic });
-          } else {
-            Promise.resolve(false);
-          }
+    if (data.media_metadata) {
+      let metaData = data.media_metadata;
+      let items = data.gallery_data.items;
 
-          //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-          //https://imgur.com/a/p1Zz504
-          //nextWatch(optionalPostNumber + 1);
+      let ImagesArray = [];
+      items.forEach((item) => {
+        let itemData = metaData[item.media_id];
+        let tempimgurl = itemData.s.u;
+        let imgurl = tempimgurl.replace(/amp;/g, "");
+        ImagesArray.push(imgurl);
+      });
+
+      /*
+        Sets Image Gallery
+        */
+      //setCurrentImage(ImagesArray[0]);
+      //setCurrentWatchObj({ image: ImagesArray[0] })
+      //setImages(ImagesArray);
+      setImageIndex(0);
+      return ({ images: ImagesArray, image: ImagesArray[0] });
+    } else {
+
+      setImages([]);
+      let tempUrl = data.url_overridden_by_dest;
+
+
+
+      if (tempUrl.includes("v.redd")) {
+        //If it is a video link
+        console.log('vreddit')
+        return (false);
+      } else if (tempUrl.includes("imgur")) {
+        //If it is an imgur link
+        console.log('imgur else if')
+        if (data.media.oembed) {
+          console.log('oembed');
+          let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
+          //setCurrentImage(fullPic);
+          return ({ image: fullPic });
         } else {
-          //setCurrentImage(tempUrl);
-          //setCurrentWatchObj({ image: tempUrl });
-          Promise.resolve({ image: tempUrl });
+          return (false);
         }
+
+        //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+        //https://imgur.com/a/p1Zz504
+        //nextWatch(optionalPostNumber + 1);
+      } else {
+        //setCurrentImage(tempUrl);
+        //setCurrentWatchObj({ image: tempUrl });
+        return ({ image: tempUrl });
       }
-    });
-    return promise;
+    }
+
   }
 
 
@@ -350,14 +354,14 @@ export const Quiz = () => {
     return (number - (number % 5))
 
   }
-  const GenerateAnswers = (answer) => {
+  const GenerateAnswers = async (answer) => {
     //0 is lowest
     //1 second lowest
     //2 second Highest
     //3 highest
     let index = getRandomIntInclusive(0, 3);
     let answers = [];
-    setAnswerIndex(index);
+    //setAnswerIndex(index);
 
     answer = parseInt(answer);
 
@@ -367,34 +371,35 @@ export const Quiz = () => {
         answers.push(roundToFive(parseInt(answer * 2)));
         answers.push(roundToFive(parseInt(answer * 4)));
         answers.push(roundToFive(parseInt(answer * 8)));
-        setNextWatchObject({ index: 0 })
+        //setNextWatchObject({ index: 0 })
         break;
       case 1:
         answers.push(roundToFive(parseInt(answer / 2)));
         answers.push(roundToFive(answer));
         answers.push(roundToFive(parseInt(answer * 2)));
         answers.push(roundToFive(parseInt(answer * 4)));
-        setNextWatchObject({ index: 1 })
+        //setNextWatchObject({ index: 1 })
         break;
       case 2:
         answers.push(roundToFive(parseInt(answer / 2)));
         answers.push(roundToFive(parseInt(answer / 4)));
         answers.push(roundToFive(answer));
         answers.push(roundToFive(parseInt(answer * 2)));
-        setNextWatchObject({ index: 2 })
+        //setNextWatchObject({ index: 2 })
         break;
       case 3:
         answers.push(roundToFive(parseInt(answer / 2)));
         answers.push(roundToFive(parseInt(answer / 4)));
         answers.push(roundToFive(parseInt(answer / 8)));
         answers.push(roundToFive(answer));
-        setNextWatchObject({ index: 3 })
+        //setNextWatchObject({ index: 3 })
         break;
       default:
         break;
     }
-
-    setPotentialAnswers(answers);
+    console.log(answers);
+    return ({ answers: answers, index: index });
+    //setPotentialAnswers(answers);
   };
 
   const imageChange = (index) => {
@@ -487,7 +492,7 @@ export const Quiz = () => {
 
         <div className="questionDisplay">
           <div className="leftButton">
-            {images && imageIndex > 0 && (
+            {currentWatchObj.image && imageIndex > 0 && (
               <button
                 className=""
                 onClick={() => {
@@ -497,15 +502,17 @@ export const Quiz = () => {
               </button>
             )}
           </div>
+          {currentWatchObj.image && currentWatchObj.image.images === null &&
+          <div className="activeWatch">
+            <img src={currentWatchObj.image.image} alt="" />
+          </div>}
+          {currentWatchObj.image && currentWatchObj.image.images &&
+          <div className="activeWatch">
+            <img src={currentWatchObj.image.images[imageIndex]} alt="" />
+          </div>}
 
-          {currentWatchObj && (
-            <div className="activeWatch">
-              <img src={currentWatchObj.image} alt="watch" id="activeWatch" />
-              {nextWatchObject.image && <img src={nextWatchObject.image} alt="watch" id="activeWatch" />}
-            </div>
-          )}
           <div className="rightButton ">
-            {images && imageIndex < images.length - 1 && (
+            {currentWatchObj.image && currentWatchObj.image.images && imageIndex < currentWatchObj.image.images.length - 1 && (
               <button
                 className=""
                 onClick={() => {
@@ -528,10 +535,11 @@ export const Quiz = () => {
               </button></div>
             <div className="score">Total: {percentage}%</div>
           </div>
-          {watchPrice && potentialAnswers && (
+          {currentWatchObj.index && (
             <div className="answersDiv">
-              {potentialAnswers.map((answer, index) => {
-                if (index === answerIndex) {
+              {currentWatchObj.index.answers.map((answer, index) => {
+
+                if (index === currentWatchObj.index.index) {
                   return (
                     <button className={correctAnswerClass} onClick={rightAnswer} key={index}>
                       ${answer}
