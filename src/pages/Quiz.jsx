@@ -134,6 +134,7 @@ export const Quiz = () => {
 
               if (!image) {
 
+                console.log('unsuccessful image gang')
                 //Unsuccessful. dont set nextWatchObject and go to the next item
                 NextWatch(optionalPostNumber + 1);
               } else {
@@ -143,17 +144,15 @@ export const Quiz = () => {
                 let index = await GenerateAnswers(price);
                 console.log(index)
 
-                console.log('almost there')
                 if (index) {
                   tempWatchObject.index = index
-                  //everything is good
-
-                  //If it makes it here, it is successful
                   console.log(tempWatchObject);
                   if (!currentWatchObj) {
+                    //If statement if there isnt a currentwatchobj already
                     setCurrentWatchObj(tempWatchObject);
                     NextWatch(optionalPostNumber + 1);
                   } else {
+                    //if there is already a currentwatchobject
                     setCurrentWatchObj(nextWatchObject);
                     setNextWatchObject(tempWatchObject);
                   }
@@ -402,9 +401,16 @@ export const Quiz = () => {
     //setPotentialAnswers(answers);
   };
 
+
   const imageChange = (index) => {
+
     setImageIndex(index);
-    setCurrentWatchObj({ image: {image: currentWatchObj.image.images[index], image: currentWatchObj.image.images} });
+    /*
+    let tempObj = currentWatchObj;
+    tempObj.image.image = currentWatchObj.image.images[index];
+    console.log(tempObj)
+    setCurrentWatchObj(tempObj);
+    */
   };
 
 
@@ -501,17 +507,17 @@ export const Quiz = () => {
               </button>
             )}
           </div>
-          {currentWatchObj.image &&  currentWatchObj.image.image &&
+          {currentWatchObj.image &&  currentWatchObj.image.images &&
+          <div className="activeWatch">
+            <img src={currentWatchObj.image.images[imageIndex]} alt="watch" />
+          </div>}
+          {currentWatchObj.image &&  !currentWatchObj.image.images &&
           <div className="activeWatch">
             <img src={currentWatchObj.image.image} alt="watch" />
           </div>}
-          {currentWatchObj.image &&  !currentWatchObj.image.image &&
-          <div className="activeWatch">
-            <img src={currentWatchObj.image} alt="watch" />
-          </div>}
 
           <div className="rightButton ">
-            {currentWatchObj.image && currentWatchObj.image.image && imageIndex < currentWatchObj.image.images.length - 1 && (
+            {currentWatchObj.image && currentWatchObj.image.images && imageIndex < currentWatchObj.image.images.length - 1 && (
               <button
                 className=""
                 onClick={() => {
