@@ -31,53 +31,24 @@ export const Quiz = () => {
 
   const [correctAnswerClass, setCorrectAnswerClass] = useState("answer");
   const [wrongAnswerClass, setWrongAnswerClass] = useState("answer");
-
-
-  /***
-   *  THIS IS THE QUARENTINE. MAKE THESE WORK WITHOUT ALL OF THE BS
-   */
-
-  //next watch needs to handle all of the stuff. all of this "next next watch" is dumb
-  //set nextWatchObject first
-  //if currentWatchObject it null, run it again and set currentWatchObject to nextWatchObject
-
-
-  /*
-  
-  NEXT UP
-
-
-  PRICES
-  figure out these lines to work with everything
-  //setWatchPrice(nextLowest);
-  //setCurrentWatchObj({ price: nextLowest })
-  //I NEED TO MAKE A NEXTANSWERSOBJECT
-  //GenerateAnswers(nextLowest);
-
-  IMAGES
-  I PROBABLY NEED TO DO A 'NEXTIMAGES'
-
-  //setCurrentImage(ImagesArray[0]);
-  //setCurrentWatchObj({ image: ImagesArray[0] })
-  //setImages(ImagesArray);
-  //setImageIndex(0);
-
-  */
+  const [spinClass, setSpinClass] = useState('')
 
 
 
   const NextWatch = async (optionalPostNumber = postIndex) => {
-    /*
-        console.log(optionalPostNumber)
-        setImageRotation(0);
-        const image = document.getElementById("activeWatch");
-        if (image) {
-          image.style.transform = `rotate(0deg)`;
-        }
-        */
+
 
     //resets the image to the first in the index
     setImageIndex(0);
+    if (currentWatchObj.image && nextWatchObject.image) {
+
+      let tempimage = document.getElementById("activeWatch");
+      tempimage.style.transform = `rotate(0deg)`;
+      setImageRotation(0);
+    }
+
+
+
 
     //If posts exist and it isnt and outofbounds exception
     if (posts && optionalPostNumber < posts.length) {
@@ -103,11 +74,6 @@ export const Quiz = () => {
           if (data) {
             console.log('got data');
 
-            /*
-
-            Success means we got the price
-
-            */
             let price = await GetPrice(data, optionalPostNumber);
 
 
@@ -332,11 +298,6 @@ export const Quiz = () => {
 
 
 
-
-  /**
-   * QUARENTINE OVA
-   */
-
   const updatePosts = (newPosts) => {
     setPosts(newPosts);
   };
@@ -405,12 +366,7 @@ export const Quiz = () => {
   const imageChange = (index) => {
 
     setImageIndex(index);
-    /*
-    let tempObj = currentWatchObj;
-    tempObj.image.image = currentWatchObj.image.images[index];
-    console.log(tempObj)
-    setCurrentWatchObj(tempObj);
-    */
+
   };
 
 
@@ -432,17 +388,26 @@ export const Quiz = () => {
     setCorrectAnswerClass("correctanswer");
     setWrongAnswerClass("wronganswer");
 
-
+    myMove();
     await timeout(2000);
     setCorrectAnswerClass("answer");
     setWrongAnswerClass("answer");
     NextWatch();
+    
+    
+    return true;
   }
 
-  const rightAnswer = () => {
+
+
+  const rightAnswer = async () => {
     const image = document.getElementById("activeWatch");
-    //image.style.transform = `rotate(1080deg)`;
-    handleGlow();
+    image.style.transform = `rotate(1080deg)`;
+
+    
+    image.style.animationName = 'spin'
+    await handleGlow();
+    
     let correctTemp = numCorrect + 1;
     let totalTemp = numTotal + 1;
     let percentageTemp = Math.round((correctTemp / totalTemp) * 100);
@@ -450,6 +415,7 @@ export const Quiz = () => {
     setNumCorret(correctTemp);
     setNumTotal(totalTemp);
     setPercentage(percentageTemp);
+    
   };
 
   const wrongAnswer = () => {
@@ -463,6 +429,8 @@ export const Quiz = () => {
 
     setNumTotal(totalTemp);
     setPercentage(percentageTemp);
+
+    
   };
 
   const fetchData = () => {
@@ -507,14 +475,14 @@ export const Quiz = () => {
               </button>
             )}
           </div>
-          {currentWatchObj.image &&  currentWatchObj.image.images &&
-          <div className="activeWatch">
-            <img src={currentWatchObj.image.images[imageIndex]} alt="watch" />
-          </div>}
-          {currentWatchObj.image &&  !currentWatchObj.image.images &&
-          <div className="activeWatch">
-            <img src={currentWatchObj.image.image} alt="watch" />
-          </div>}
+          {currentWatchObj.image && currentWatchObj.image.images &&
+            <div className="activeWatch">
+              <img src={currentWatchObj.image.images[imageIndex]} alt="watch" id="activeWatch" />
+            </div>}
+          {currentWatchObj.image && !currentWatchObj.image.images &&
+            <div className="activeWatch">
+              <img src={currentWatchObj.image.image} alt="watch" id="activeWatch" className={spinClass}/>
+            </div>}
 
           <div className="rightButton ">
             {currentWatchObj.image && currentWatchObj.image.images && imageIndex < currentWatchObj.image.images.length - 1 && (
