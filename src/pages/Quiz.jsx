@@ -388,7 +388,7 @@ export const Quiz = () => {
     setCorrectAnswerClass("correctanswer");
     setWrongAnswerClass("wronganswer");
 
-    myMove();
+    //myMove();
     await timeout(2000);
     setCorrectAnswerClass("answer");
     setWrongAnswerClass("answer");
