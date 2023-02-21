@@ -33,6 +33,8 @@ export const Quiz = () => {
   const [wrongAnswerClass, setWrongAnswerClass] = useState("answer");
   const [spinClass, setSpinClass] = useState('')
 
+  const [ currentImage, setCurrentImage] = useState("");
+
 
 
   const NextWatch = async (optionalPostNumber = postIndex) => {
@@ -260,6 +262,7 @@ export const Quiz = () => {
       //setCurrentWatchObj({ image: ImagesArray[0] })
       //setImages(ImagesArray);
       setImageIndex(0);
+      setCurrentImage(ImagesArray[0]);
       return ({ images: ImagesArray, image: ImagesArray[0] });
     } else {
 
@@ -278,17 +281,14 @@ export const Quiz = () => {
         if (data.media.oembed) {
           console.log('oembed');
           let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "")
-          //setCurrentImage(fullPic);
+          setCurrentImage(fullPic);
           return ({ image: fullPic });
         } else {
           return (false);
         }
 
-        //<blockquote class="imgur-embed-pub" lang="en" data-id="a/p1Zz504"  ><a href="//imgur.com/a/p1Zz504">2005 Rolex Explorer (D Serial) with Papers</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-        //https://imgur.com/a/p1Zz504
-        //nextWatch(optionalPostNumber + 1);
       } else {
-        //setCurrentImage(tempUrl);
+        setCurrentImage(tempUrl);
         //setCurrentWatchObj({ image: tempUrl });
         return ({ image: tempUrl });
       }
@@ -366,6 +366,7 @@ export const Quiz = () => {
   const imageChange = (index) => {
 
     setImageIndex(index);
+    setCurrentImage(currentWatchObj.image.images[index])
 
   };
 
@@ -388,7 +389,6 @@ export const Quiz = () => {
     setCorrectAnswerClass("correctanswer");
     setWrongAnswerClass("wronganswer");
 
-    //myMove();
     await timeout(2000);
     setCorrectAnswerClass("answer");
     setWrongAnswerClass("answer");
@@ -450,6 +450,39 @@ export const Quiz = () => {
     );
   };
 
+  const PictureZoom = (event) => {
+    
+    let leftButton = document.getElementsByClassName('leftButton')[0];
+    console.log(leftButton);
+    let original = document.querySelector("#activeWatch"),
+      magnified = document.querySelector("#picZoom"),
+      style = magnified.style,
+      x = event.pageX - original.offsetLeft,
+      y = event.pageY - original.offsetTop,
+      imgWidth = original.offsetWidth,
+      imgHeight = original.offsetHeight,
+      xperc = (x / imgWidth) * 100,
+      yperc = (y / imgHeight) * 100;
+      console.log(original.offsetLeft);
+
+    //lets user scroll past right edge of image
+    if (x > 0.01 * imgWidth) {
+      xperc += 0.15 * xperc;
+    }
+
+    //lets user scroll past bottom edge of image
+    if (y >= 0.01 * imgHeight) {
+      yperc += 0.15 * yperc;
+    }
+
+    style.backgroundPositionX = xperc - 9 + "%";
+    style.backgroundPositionY = yperc - 9 + "%";
+
+    style.left = x - 180 + "px";
+    style.top = y - 180 + "px";
+    
+  }
+
   useEffect(() => {
     if (posts) {
       NextWatch();
@@ -459,10 +492,12 @@ export const Quiz = () => {
   }, [posts]);
 
 
+  if(currentWatchObj){
+
+  
   return (
     <>
       <div className="pageWrapper">
-
         <div className="questionDisplay">
           <div className="leftButton">
             {currentWatchObj.image && imageIndex > 0 && (
@@ -475,51 +510,81 @@ export const Quiz = () => {
               </button>
             )}
           </div>
-          {currentWatchObj.image && currentWatchObj.image.images &&
+
+          {currentWatchObj.image && (
             <div className="activeWatch">
-              <img src={currentWatchObj.image.images[imageIndex]} alt="watch" id="activeWatch" />
-            </div>}
-          {currentWatchObj.image && !currentWatchObj.image.images &&
-            <div className="activeWatch">
-              <img src={currentWatchObj.image.image} alt="watch" id="activeWatch" className={spinClass}/>
-            </div>}
+              <img
+                src={currentImage}
+                alt="watch"
+                id="activeWatch"
+                className={spinClass}
+                onMouseMove={(event) => {
+                  PictureZoom(event);
+                }}
+              />
+              <div
+                className="picZoom"
+                id="picZoom"
+                alt="?"
+                style={{
+                  background: `url(${currentImage}) no-repeat #FFF`,
+                }}></div>
+            </div>
+          )}
 
           <div className="rightButton ">
-            {currentWatchObj.image && currentWatchObj.image.images && imageIndex < currentWatchObj.image.images.length - 1 && (
-              <button
-                className=""
-                onClick={() => {
-                  imageChange(imageIndex + 1);
-                }}>
-                {String.fromCharCode(8594)}
-              </button>
-            )}
+            {currentWatchObj.image &&
+              currentWatchObj.image.images &&
+              imageIndex < currentWatchObj.image.images.length - 1 && (
+                <button
+                  className=""
+                  onClick={() => {
+                    imageChange(imageIndex + 1);
+                  }}>
+                  {String.fromCharCode(8594)}
+                </button>
+              )}
           </div>
         </div>
         <div className="answersParent">
           <div className="toolBox">
             <div className="">
-              <button className="nextWatch" onClick={() => { NextWatch(postIndex) }}>
+              <button
+                className="nextWatch"
+                onClick={() => {
+                  NextWatch(postIndex);
+                }}>
                 Next watch
-              </button></div>
+              </button>
+            </div>
             <div className="">
               <button className="rotate" onClick={rotateImage}>
                 Rotate
-              </button></div>
+              </button>
+            </div>
             <div className="score">Total: {percentage}%</div>
           </div>
           {currentWatchObj.index && (
             <div className="answersDiv">
               {currentWatchObj.index.answers.map((answer, index) => {
-
                 if (index === currentWatchObj.index.index) {
                   return (
-                    <button className={correctAnswerClass} onClick={rightAnswer} key={index}>
+                    <button
+                      className={correctAnswerClass}
+                      onClick={rightAnswer}
+                      key={index}>
                       ${answer}
                     </button>
                   );
                 } else {
-                  return <button className={wrongAnswerClass} onClick={wrongAnswer} key={index}>${answer}</button>;
+                  return (
+                    <button
+                      className={wrongAnswerClass}
+                      onClick={wrongAnswer}
+                      key={index}>
+                      ${answer}
+                    </button>
+                  );
                 }
               })}
             </div>
@@ -527,5 +592,11 @@ export const Quiz = () => {
         </div>
       </div>
     </>
-  );
-};
+  );}else{
+
+    return(
+        <h1>Loading...</h1>
+    )
+}
+}
+
