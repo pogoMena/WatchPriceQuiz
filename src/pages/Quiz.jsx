@@ -412,7 +412,7 @@ export const Quiz = () => {
     let original = document.querySelector("#activeWatch"),
       magnified = document.querySelector("#picZoom"),
       style = magnified.style,
-      x = event.pageX - original.offsetLeft,
+      x = event.pageX + original.offsetLeft,
       y = event.pageY - original.offsetTop,
       imgWidth = original.offsetWidth,
       imgHeight = original.offsetHeight,
