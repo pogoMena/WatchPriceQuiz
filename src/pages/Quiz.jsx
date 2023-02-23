@@ -406,6 +406,7 @@ export const Quiz = () => {
     );
   };
 
+  //This zooms the picture
   const PictureZoom = (event) => {
     let leftButton = document.getElementsByClassName("leftButton")[0];
     console.log(leftButton);
