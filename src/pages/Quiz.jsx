@@ -407,6 +407,9 @@ export const Quiz = () => {
   };
 
   //This zooms the picture
+  //When it zooms the picture it doesnt work right
+  //I want to make it so that i can change the level of zoom
+
   const PictureZoom = (event) => {
     let leftButton = document.getElementsByClassName("leftButton")[0];
     console.log(leftButton);
