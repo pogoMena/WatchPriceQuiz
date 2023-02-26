@@ -44,6 +44,33 @@ export const Quiz = () => {
 
   const [currentImage, setCurrentImage] = useState("");
 
+  var current = null;
+  var next = null;
+
+  /*
+
+  **********   TODO     **********
+  Piczoom{
+  Adjustable zoom variable
+    Would need to adjust the centering of everything
+
+  Make zoom work when image is rotated, no idea how i would do that.
+
+  }
+
+  Next watch{
+    it doesnt initially work sometimes. if there isnt a watch visible, go the next one
+  }
+
+  next image{
+    i dont know what happens, but ill click on next image and it will be a previous watch. fix it
+  }
+
+  on lines 140ish its a bit of a mess, idk why its not working. those if else mfs
+
+
+  */
+
   const NextWatch = async (optionalPostNumber = postIndex) => {
     //resets the image to the first in the index
     setImageIndex(0);
@@ -85,11 +112,6 @@ export const Quiz = () => {
               //setNextWatchObject({price: success})
               console.log(price);
 
-              /*
-
-              WE ARE GOOD TO THIS POINT
-
-              */
               console.log("image is next");
               let image = await GetImages(data[0].data.children[0].data);
 
@@ -108,12 +130,24 @@ export const Quiz = () => {
                 if (index) {
                   tempWatchObject.index = index;
                   console.log(tempWatchObject);
-                  if (!currentWatchObj) {
+                  if (!current && !next) {
                     //If statement if there isnt a currentwatchobj already
+                    console.log("getting both, first and second");
                     setCurrentWatchObj(tempWatchObject);
+                    current = tempWatchObject;
                     NextWatch(optionalPostNumber + 1);
+                  } else if (current && !next) {
+                    console.log("got first, getting second");
+                    setNextWatchObject(tempWatchObject);
+                    next =tempWatchObject;
                   } else {
                     //if there is already a currentwatchobject
+                    console.log("replacing current with next");
+                    console.log(currentWatchObj);
+
+                    current = next;
+                    next = tempWatchObject;
+
                     setCurrentWatchObj(nextWatchObject);
                     setNextWatchObject(tempWatchObject);
                   }
@@ -154,6 +188,7 @@ export const Quiz = () => {
             let noCommasPlease = post.data.body.replace(/,/g, "");
             let result = noCommasPlease.match(moneyRegEx);
 
+            console.log(noCommasPlease);
             if (result) {
               if (result.length > 1) {
                 let allResults = [];
@@ -250,7 +285,7 @@ export const Quiz = () => {
       } else if (tempUrl.includes("imgur")) {
         //If it is an imgur link
         console.log("imgur else if");
-        if (data.media.oembed) {
+        if (data.media?.oembed) {
           console.log("oembed");
           let fullPic = data.media.oembed.thumbnail_url.replace("?fb", "");
           setCurrentImage(fullPic);
@@ -411,18 +446,15 @@ export const Quiz = () => {
   //I want to make it so that i can change the level of zoom
 
   const PictureZoom = (event) => {
-    let leftButton = document.getElementsByClassName("leftButton")[0];
-    console.log(leftButton);
     let original = document.querySelector("#activeWatch"),
-      magnified = document.querySelector("#picZoom"),
+      magnified = document.querySelector("#picZoom"), // the zoomed in circle
       style = magnified.style,
-      x = event.pageX + original.offsetLeft,
-      y = event.pageY - original.offsetTop,
-      imgWidth = original.offsetWidth,
-      imgHeight = original.offsetHeight,
-      xperc = (x / imgWidth) * 100,
-      yperc = (y / imgHeight) * 100;
-    console.log(original.offsetLeft);
+      x = event.pageX + original.offsetLeft, // I THINK this is the 'x' within the event, + the distance from the left side of the page
+      y = event.pageY - original.offsetTop, // I think this is the same thing, except with the top
+      imgWidth = original.offsetWidth, // Width of original picture
+      imgHeight = original.offsetHeight, //Height of original picture
+      xperc = (x / imgWidth) * 100, //a percentage of the way across the picture
+      yperc = (y / imgHeight) * 100; //a percentage of the way from teh top of the picture
 
     //lets user scroll past right edge of image
     if (x > 0.01 * imgWidth) {
@@ -434,10 +466,25 @@ export const Quiz = () => {
       yperc += 0.15 * yperc;
     }
 
+
+    /*
+    Changing 9 to a bigger number makes it bigger, smaller makes it smaller
+    when changing the number, it becomes off center
+
+    but why? how to fix?
+
+    */
+
     style.backgroundPositionX = xperc - 9 + "%";
     style.backgroundPositionY = yperc - 9 + "%";
 
-    style.left = x - 180 + "px";
+    
+
+    /*
+    I think this is the actual position of the circle, seems like it would be half of 340, but its 180 idk
+
+    */
+    style.left = x - 180 + "px"; 
     style.top = y - 180 + "px";
   };
 
