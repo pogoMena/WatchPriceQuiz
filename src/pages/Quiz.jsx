@@ -441,6 +441,7 @@ export const Quiz = () => {
     );
   };
 
+  //yessssss
   //This zooms the picture
   //When it zooms the picture it doesnt work right
   //I want to make it so that i can change the level of zoom
