@@ -441,7 +441,6 @@ export const Quiz = () => {
     );
   };
 
-  //yessssss
   //This zooms the picture
   //When it zooms the picture it doesnt work right
   //I want to make it so that i can change the level of zoom
@@ -455,7 +454,7 @@ export const Quiz = () => {
       imgWidth = original.offsetWidth, // Width of original picture
       imgHeight = original.offsetHeight, //Height of original picture
       xperc = (x / imgWidth) * 100, //a percentage of the way across the picture
-      yperc = (y / imgHeight) * 100; //a percentage of the way from teh top of the picture
+      yperc = (y / imgHeight) * 100; //a percentage of the way from the top of the picture
 
     //lets user scroll past right edge of image
     if (x > 0.01 * imgWidth) {
