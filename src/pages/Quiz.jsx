@@ -44,6 +44,8 @@ export const Quiz = () => {
 
   const [currentImage, setCurrentImage] = useState("");
 
+  const [currentZoomWidth, setCurrentZoomWidth] = useState(340);
+
   var current = null;
   var next = null;
 
@@ -68,7 +70,7 @@ export const Quiz = () => {
 
   on lines 140ish its a bit of a mess, idk why its not working. those if else mfs
 
-
+fix changezoom
   */
 
   const NextWatch = async (optionalPostNumber = postIndex) => {
@@ -450,7 +452,7 @@ export const Quiz = () => {
       magnified = document.querySelector("#picZoom"), // the zoomed in circle
       style = magnified.style,
       x = event.pageX + original.offsetLeft, // I THINK this is the 'x' within the event, + the distance from the left side of the page
-      y = event.pageY - original.offsetTop, // I think this is the same thing, except with the top
+      y = event.pageY + original.offsetTop, // I think this is the same thing, except with the top
       imgWidth = original.offsetWidth, // Width of original picture
       imgHeight = original.offsetHeight, //Height of original picture
       xperc = (x / imgWidth) * 100, //a percentage of the way across the picture
@@ -473,9 +475,11 @@ export const Quiz = () => {
 
     but why? how to fix?
 
+    where does the size of the image come from?
+
     */
 
-    style.backgroundPositionX = xperc - 9 + "%";
+    style.backgroundPositionX = xperc - 9 + "%";   
     style.backgroundPositionY = yperc - 9 + "%";
 
     
@@ -487,6 +491,28 @@ export const Quiz = () => {
     style.left = x - 180 + "px"; 
     style.top = y - 180 + "px";
   };
+
+  const changeZoom = () => {
+    var width = currentZoomWidth;
+    if(width === 340){
+        width = 360;
+    }else if(width === 360){
+        width = 240;
+    }else if(width === 240){
+        width = 280;
+    }else{
+        width = 340;
+    }
+
+    const magnified = document.querySelector("#picZoom"); // the zoomed in circle
+    const style = magnified.style
+
+    style.width = width + 'px';
+    style.height = width + 'px';
+
+    setCurrentZoomWidth(width);
+
+  }
 
   useEffect(() => {
     if (posts) {
@@ -556,6 +582,11 @@ export const Quiz = () => {
               <div className="">
                 <button className="rotate" onClick={rotateImage}>
                   Rotate
+                </button>
+              </div>
+              <div className="">
+                <button className="rotate" onClick={changeZoom}>
+                  Zoom
                 </button>
               </div>
               <div className="score">Total: {percentage}%</div>
