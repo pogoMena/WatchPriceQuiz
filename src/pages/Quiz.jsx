@@ -71,6 +71,8 @@ export const Quiz = () => {
   on lines 140ish its a bit of a mess, idk why its not working. those if else mfs
 
 fix changezoom
+
+man h man
   */
 
   const NextWatch = async (optionalPostNumber = postIndex) => {
