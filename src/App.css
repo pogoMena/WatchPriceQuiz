@@ -147,7 +147,7 @@ background-color:aliceblue;
 }
 
 
-.activeWatch:hover, .activeWatch:active {
+.activeWatch > img:hover, .activeWatch > img:active {
   display: block;
 }
 

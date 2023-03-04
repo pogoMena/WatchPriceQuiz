@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 export const Quiz = () => {
-    const [searchStart, setSearchStart] = useState(100);
+  const [searchStart, setSearchStart] = useState(100);
   //secret: K07J2yPPhzObBT1wyXTFdGTmjzNOEg
   const [currentWatchParent, setCurrentWatchParent] = useState("");
   const [currentWatch, setCurrentWatch] = useState("");
@@ -45,6 +45,7 @@ export const Quiz = () => {
   const [currentImage, setCurrentImage] = useState("");
 
   const [currentZoomWidth, setCurrentZoomWidth] = useState(340);
+  const [zoomSizeString, setZoomSizeString] = useState("Large");
 
   var current = null;
   var next = null;
@@ -72,21 +73,22 @@ export const Quiz = () => {
 
 fix changezoom
 
-man h man
   */
 
-  const NextWatch = async (optionalPostNumber = postIndex) => {
+  const NextWatch = async (
+    optionalPostNumber = postIndex,
+    nextPost = false
+  ) => {
     //resets the image to the first in the index
     setImageIndex(0);
     if (currentWatchObj.image && nextWatchObject.image) {
-      let tempimage = document.getElementById("activeWatch");
+      let tempimage = document.getElementById("activeWatchImg");
       tempimage.style.transform = `rotate(0deg)`;
       setImageRotation(0);
     }
 
     //If posts exist and it isnt and outofbounds exception
     if (posts && optionalPostNumber < posts.length) {
-      console.log("got posts");
       //I need to do something here
 
       /*
@@ -103,64 +105,63 @@ man h man
       fetch("https://www.reddit.com" + wp.permalink + ".json").then((res) => {
         res.json().then(async (data) => {
           if (data) {
-            console.log("got data");
+            let answers = await GetPrice(data, optionalPostNumber);
+            console.log(answers.answers);
+            console.log("Result from that\n");
 
-            let price = await GetPrice(data, optionalPostNumber);
-
-            console.log(price);
-            console.log("yo");
-
-            if (price) {
+            if (answers) {
               console.log("it thinks theres a price");
-              tempWatchObject.price = price;
+              tempWatchObject.answers = answers.answers;
+              tempWatchObject.index = answers.index;
+              console.log(answers);
+              console.log("Index: " + tempWatchObject.index);
               //setNextWatchObject({price: success})
-              console.log(price);
-
-              console.log("image is next");
               let image = await GetImages(data[0].data.children[0].data);
 
               console.log(image);
 
               if (!image) {
-                console.log("unsuccessful image gang");
+                console.log("FAIL: IMAGE");
                 //Unsuccessful. dont set nextWatchObject and go to the next item
                 NextWatch(optionalPostNumber + 1);
               } else {
-                tempWatchObject.image = image;
-
-                let index = await GenerateAnswers(price);
-                console.log(index);
-
-                if (index) {
-                  tempWatchObject.index = index;
-                  console.log(tempWatchObject);
-                  if (!current && !next) {
-                    //If statement if there isnt a currentwatchobj already
-                    console.log("getting both, first and second");
-                    setCurrentWatchObj(tempWatchObject);
-                    current = tempWatchObject;
-                    NextWatch(optionalPostNumber + 1);
-                  } else if (current && !next) {
-                    console.log("got first, getting second");
-                    setNextWatchObject(tempWatchObject);
-                    next =tempWatchObject;
-                  } else {
-                    //if there is already a currentwatchobject
-                    console.log("replacing current with next");
-                    console.log(currentWatchObj);
-
-                    current = next;
-                    next = tempWatchObject;
-
-                    setCurrentWatchObj(nextWatchObject);
-                    setNextWatchObject(tempWatchObject);
-                  }
+                console.log("Image");
+                //Thes .image is just to make sure its not null. its dumb but whatever
+                if (
+                  !currentWatchObj.image &&
+                  !nextWatchObject.image &&
+                  !nextPost
+                ) {
+                  //If statement if there isnt a currentwatchobj already
+                  console.log("getting both, first and second");
+                  console.log("");
+                  console.log("Setting Current");
+                  console.log("SUCCESS");
+                  setCurrentWatchObj(tempWatchObject);
+                  current = tempWatchObject;
+                  NextWatch(optionalPostNumber + 1, true);
+                } else if (
+                  currentWatchObj.image &&
+                  !nextWatchObject.image &&
+                  nextPost
+                ) {
+                  console.log("got first, getting second");
+                  console.log("");
+                  console.log("Setting Next");
+                  console.log("SUCCESS");
+                  setNextWatchObject(tempWatchObject);
+                  next = tempWatchObject;
                 } else {
-                  //no index? idk
+                  //if there is already a currentwatchobject
+                  console.log("Replacing Current With Next");
+                  console.log("");
+                  console.log("SUCCESS");
+                  setCurrentWatchObj(nextWatchObject);
+                  setNextWatchObject(tempWatchObject);
                 }
               }
             } else {
-              console.log("fail");
+              console.log("FAIL: PRICE");
               NextWatch(optionalPostNumber + 1);
             }
           }
@@ -168,31 +169,32 @@ man h man
       });
     } else {
       console.log("skippin the whole thing are we");
-      setPostIndex(0);
+      //setPostIndex(0);
       //let random = await fetchData();
       //console.log(random)
-
     }
   };
 
   async function GetPrice(data, optionalPostNumber) {
     /***
      * This is to get the comment that will have the price in it
-     */ if (data[1].data.children) {
+     */
+    if (data[1].data.children) {
       setCurrentWatch(data[1].data.children);
       let postComments = data[1].data.children;
-      let keepItGoing = true;
 
       let finalResult = false;
 
-      postComments.forEach((post) => {
-        if (keepItGoing) {
+      let letsContinueMyGoodFriend = true;
+
+      postComments.forEach(async (post) => {
+        if (letsContinueMyGoodFriend) {
           if (post.data.is_submitter) {
             let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
             let noCommasPlease = post.data.body.replace(/,/g, "");
             let result = noCommasPlease.match(moneyRegEx);
 
-            console.log(noCommasPlease);
+            //console.log(noCommasPlease);
             if (result) {
               if (result.length > 1) {
                 let allResults = [];
@@ -220,37 +222,39 @@ man h man
                   //setCurrentWatchObj({ price: nextLowest })
 
                   //I NEED TO MAKE A NEXTANSWERSOBJECT
-                  GenerateAnswers(nextLowest);
-                  finalResult = nextLowest;
-                  keepItGoing = false;
+                  finalResult = await GenerateAnswers(nextLowest);
+                  letsContinueMyGoodFriend = false;
+
+                  console.log(finalResult);
+                  return finalResult;
                 } else {
                   setWatchPrice(lowest);
                   //setCurrentWatchObj({ price: lowest })
-                  GenerateAnswers(lowest);
-                  console.log(lowest);
-                  finalResult = lowest;
-                  keepItGoing = false;
+                  finalResult = await GenerateAnswers(lowest);
+                  letsContinueMyGoodFriend = false;
+
+                  console.log(finalResult);
+                  return finalResult;
                 }
               } else {
                 let noDolla = result[0].replace(/\$/g, "");
                 noDolla = noDolla.replace(/€/g, "");
                 setWatchPrice(Number(noDolla));
                 //setCurrentWatchObj({ price: Number(noDolla) })
-                GenerateAnswers(noDolla);
-                finalResult = Number(noDolla);
-                keepItGoing = false;
+                finalResult = await GenerateAnswers(Number(noDolla));
+                letsContinueMyGoodFriend = false;
+
+                console.log(finalResult);
+                return finalResult;
               }
-            } else {
-              setPotentialAnswers([]);
-              console.log(post.data);
-              keepItGoing = false;
             }
           }
+        } else {
+          console.log("CONTINUE IS FALSE");
         }
       });
-      return finalResult;
     } else {
-      console.log();
+      console.log("FAIL: PRICE REGEX");
 
       return false;
     }
@@ -361,7 +365,6 @@ man h man
       default:
         break;
     }
-    console.log(answers);
     return { answers: answers, index: index };
     //setPotentialAnswers(answers);
   };
@@ -372,7 +375,7 @@ man h man
   };
 
   const rotateImage = () => {
-    const image = document.getElementById("activeWatch");
+    const image = document.getElementById("activeWatchImg");
     var imageRotateTemp = imageRotation;
     imageRotateTemp += 90;
     setImageRotation(imageRotateTemp);
@@ -396,7 +399,7 @@ man h man
   };
 
   const rightAnswer = async () => {
-    const image = document.getElementById("activeWatch");
+    const image = document.getElementById("activeWatchImg");
     image.style.transform = `rotate(1080deg)`;
 
     image.style.animationName = "spin";
@@ -412,7 +415,7 @@ man h man
   };
 
   const wrongAnswer = () => {
-    const image = document.getElementById("activeWatch");
+    const image = document.getElementById("activeWatchImg");
     //image.style.transition = "position: absolute;";
     handleGlow();
 
@@ -425,24 +428,23 @@ man h man
   };
 
   const fetchData = async () => {
-    fetch(`https://www.reddit.com/r/watchexchange/new/.json?limit=100?count-${searchStart}`).then(
-      (res) => {
-        setSearchStart(searchStart+100)
-        if (res.status !== 200) {
-          console.log("error");
-          return;
-        }
-        res.json().then((data) => {
-          if (data) {
-            updatePosts(data.data.children);
-            NextWatch();
-            return true;
-          }
-          return false;
-        });
+    fetch(
+      `https://www.reddit.com/r/watchexchange/new/.json?limit=100?count-${searchStart}`
+    ).then((res) => {
+      setSearchStart(searchStart + 100);
+      if (res.status !== 200) {
+        console.log("error");
+        return;
       }
-      
-    );
+      res.json().then((data) => {
+        if (data) {
+          updatePosts(data.data.children);
+          NextWatch();
+          return true;
+        }
+        return false;
+      });
+    });
   };
 
   //This zooms the picture
@@ -450,7 +452,7 @@ man h man
   //I want to make it so that i can change the level of zoom
 
   const PictureZoom = (event) => {
-    let original = document.querySelector("#activeWatch"),
+    let original = document.querySelector("#activeWatchImg"),
       magnified = document.querySelector("#picZoom"), // the zoomed in circle
       style = magnified.style,
       x = event.pageX + original.offsetLeft, // I THINK this is the 'x' within the event, + the distance from the left side of the page
@@ -470,7 +472,6 @@ man h man
       yperc += 0.15 * yperc;
     }
 
-
     /*
     Changing 9 to a bigger number makes it bigger, smaller makes it smaller
     when changing the number, it becomes off center
@@ -481,40 +482,41 @@ man h man
 
     */
 
-    style.backgroundPositionX = xperc - 9 + "%";   
+    style.backgroundPositionX = xperc - 9 + "%";
     style.backgroundPositionY = yperc - 9 + "%";
-
-    
 
     /*
     I think this is the actual position of the circle, seems like it would be half of 340, but its 180 idk
 
     */
-    style.left = x - 180 + "px"; 
+    style.left = x - 180 + "px";
     style.top = y - 180 + "px";
   };
 
   const changeZoom = () => {
     var width = currentZoomWidth;
-    if(width === 340){
-        width = 360;
-    }else if(width === 360){
-        width = 240;
-    }else if(width === 240){
-        width = 280;
-    }else{
-        width = 340;
+    if (width === 340) {
+      width = 360;
+      setZoomSizeString("X-Large");
+    } else if (width === 360) {
+      width = 240;
+      setZoomSizeString("Small");
+    } else if (width === 240) {
+      width = 280;
+      setZoomSizeString("Medium");
+    } else {
+      width = 340;
+      setZoomSizeString("Large");
     }
 
     const magnified = document.querySelector("#picZoom"); // the zoomed in circle
-    const style = magnified.style
+    const style = magnified.style;
 
-    style.width = width + 'px';
-    style.height = width + 'px';
+    style.width = width + "px";
+    style.height = width + "px";
 
     setCurrentZoomWidth(width);
-
-  }
+  };
 
   useEffect(() => {
     if (posts) {
@@ -543,7 +545,7 @@ man h man
                 <img
                   src={currentImage}
                   alt="watch"
-                  id="activeWatch"
+                  id="activeWatchImg"
                   className={spinClass}
                   onMouseMove={(event) => {
                     PictureZoom(event);
@@ -590,13 +592,14 @@ man h man
                 <button className="rotate" onClick={changeZoom}>
                   Zoom
                 </button>
+                <div className="sizeString">{zoomSizeString}</div>
               </div>
               <div className="score">Total: {percentage}%</div>
             </div>
             {currentWatchObj.index && (
               <div className="answersDiv">
-                {currentWatchObj.index.answers.map((answer, index) => {
-                  if (index === currentWatchObj.index.index) {
+                {currentWatchObj.answers.map((answer, index) => {
+                  if (index === currentWatchObj.index) {
                     return (
                       <button
                         className={correctAnswerClass}
