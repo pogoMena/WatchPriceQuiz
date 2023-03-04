@@ -106,7 +106,7 @@ fix changezoom
         res.json().then(async (data) => {
           if (data) {
             let answers = await GetPrice(data, optionalPostNumber);
-            console.log(answers.answers);
+            console.log(answers);
             console.log("Result from that\n");
 
             if (answers) {
@@ -248,6 +248,8 @@ fix changezoom
                 return finalResult;
               }
             }
+          }else{
+            console.log("Not Submitter")
           }
         } else {
           console.log("CONTINUE IS FALSE");
