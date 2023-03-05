@@ -187,7 +187,8 @@ fix changezoom
 
       let letsContinueMyGoodFriend = true;
 
-      postComments.forEach(async (post) => {
+      for (let i = 0; i < postComments.length; i++) {
+      const post = postComments[i];
         if (letsContinueMyGoodFriend) {
           if (post.data.is_submitter) {
             let moneyRegEx = new RegExp("[$,€][0-9.]+|[0-9.]+[$,€]", "g");
@@ -254,7 +255,7 @@ fix changezoom
         } else {
           console.log("CONTINUE IS FALSE");
         }
-      });
+      };
     } else {
       console.log("FAIL: PRICE REGEX");
 
