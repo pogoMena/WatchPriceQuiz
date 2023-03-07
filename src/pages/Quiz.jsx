@@ -501,7 +501,7 @@ fix changezoom
                 />
                 {currentWatchObj.image &&
                   currentWatchObj.image.images &&
-                  imageIndex < currentWatchObj.image.images.length - 1 && (
+                  imageIndex < currentWatchObj.image.images.length  && (
                     <button
                       className="rightButton"
                       onClick={() => {
