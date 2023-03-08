@@ -425,6 +425,8 @@ fix changezoom
 
     but why? how to fix?
 
+    I need to do this!
+
     where does the size of the image come from?
 
     */
