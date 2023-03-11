@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import axios from "axios";
 
 export const Quiz = () => {
   const [searchStart, setSearchStart] = useState(100);
@@ -19,6 +18,7 @@ export const Quiz = () => {
   });
 
   //const [currentImage, setCurrentImage] = useState("");
+  const temp = "Temporary do you understand"
 
   const [imageIndex, setImageIndex] = useState(0);
   const [posts, setPosts] = useState(null);
@@ -178,8 +178,6 @@ fix changezoom
               if (lowest < nextLowest / 2) {
                 //setWatchPrice(nextLowest);
                 //setCurrentWatchObj({ price: nextLowest })
-
-                //I NEED TO MAKE A NEXTANSWERSOBJECT
                 finalResult = await GenerateAnswers(nextLowest);
 
                 return finalResult;
@@ -268,6 +266,7 @@ fix changezoom
   const roundToFive = (number) => {
     return number - (number % 5);
   };
+
   const GenerateAnswers = async (answer) => {
     //0 is lowest
     //1 second lowest
@@ -397,6 +396,7 @@ fix changezoom
   //This zooms the picture
   //When it zooms the picture it doesnt work right
   //I want to make it so that i can change the level of zoom
+  //Need to figure how i can make it work after rotate
 
   const PictureZoom = (event) => {
     let original = document.querySelector("#activeWatchImg"),
