@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 export const Quiz = () => {
   const [searchStart, setSearchStart] = useState(100);
