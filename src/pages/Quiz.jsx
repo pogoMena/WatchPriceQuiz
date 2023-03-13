@@ -18,6 +18,7 @@ export const Quiz = () => {
   });
 
   //const [currentImage, setCurrentImage] = useState("");
+  //
   const temp = "Temporary do you understand"
 
   const [imageIndex, setImageIndex] = useState(0);
